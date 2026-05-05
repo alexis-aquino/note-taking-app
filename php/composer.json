@@ -1,0 +1,8 @@
+{
+    "require": {
+        "league/commonmark": "^2.8"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "10.*"
+    }
+}

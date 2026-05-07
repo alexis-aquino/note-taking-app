@@ -1,5 +1,6 @@
 {
     "require": {
+        "php": ">=8.1",
         "league/commonmark": "^2.8"
     },
     "require-dev": {

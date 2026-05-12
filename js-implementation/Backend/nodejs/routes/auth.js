@@ -34,17 +34,22 @@ authRouter.post('/login', async (req, res) => {
         const [rows] = await dbPool.query(
             'SELECT userId, passwordHash FROM users WHERE userEmail = ?', [userEmail]
         );
+        console.log(`Login attempt for ${userEmail} - User found: ${rows.length > 0}`);
+        
         if (rows.length === 0) {
             return res.status(401).json({ error: 'Invalid credentials.' });
         }
         const foundUser = rows[0];
         const passwordMatch = await bcrypt.compare(userPassword, foundUser.passwordHash);
+        console.log(`Password match for ${userEmail}: ${passwordMatch}`);
+        
         if (!passwordMatch) {
             return res.status(401).json({ error: 'Invalid credentials.' });
         }
         req.session.currentUserId = foundUser.userId;
         return res.status(200).json({ message: 'Login successful.' });
     } catch (err) {
+        console.error('Login error:', err);
         return res.status(500).json({ error: 'Login failed.' });
     }
 });

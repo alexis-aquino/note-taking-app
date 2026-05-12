@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import notesLogo from "../assets/Notes Logo.svg";
+import api from "../utils/api";
 
 export default function SignUp() {
   const [name, setName] = useState("");
@@ -24,10 +25,17 @@ export default function SignUp() {
 
     setLoading(true);
     try {
-      alert("Account created successfully!");
-      navigate("/"); 
+      const response = await api.post("/api/auth/register", { 
+        userName: name, 
+        userEmail: email, 
+        userPassword: password 
+      });
+
+      if (response.data.message) {
+        navigate("/"); 
+      }
     } catch (err) {
-      setError("Something went wrong. Please try again.");
+      setError(err.response?.data?.error || "Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -37,7 +45,9 @@ export default function SignUp() {
     <div style={styles.mainWrapper}>
       <div style={styles.leftPanel}>
         <h1 style={styles.logo}><img src={notesLogo} style={{ width: '300px' }} alt="NoteApp Logo" /></h1>
-        <p style={styles.tagline}>Join us today <br />to keep your ideas <br />safe and <br />syncing.</p>
+        <p style={styles.tagline}>
+          Your thoughts, <br />organized and <br/>accessible <br/>everywhere.
+        </p>
       </div>
 
       <div style={styles.rightPanel}>

@@ -1,25 +1,125 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../utils/api";
 
 export default function Home() {
   const navigate = useNavigate();
-  const [activeNote, setActiveNote] = useState({
-    title: "Project Ideas",
-    content: "I've been thinking about possible features for our next app...",
-  });
+  const [notes, setNotes] = useState([]);
+  const [activeNote, setActiveNote] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  const handleLogout = () => {
-    navigate("/");
+  // Fetch notes on component mount
+  useEffect(() => {
+    fetchNotes();
+  }, []);
+
+  const fetchNotes = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get("/api/notes/");
+      setNotes(response.data);
+      if (response.data.length > 0) {
+        setActiveNote(response.data[0]);
+      }
+      setError("");
+    } catch (err) {
+      console.error("Error fetching notes:", err);
+      setError("Failed to load notes");
+      if (err.response?.status === 401) {
+        navigate("/");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleLogout = async () => {
+    try {
+      await api.post("/api/auth/logout");
+    } catch (err) {
+      console.error("Logout error:", err);
+    } finally {
+      navigate("/");
+    }
+  };
+
+  const handleSelectNote = (note) => {
+    setActiveNote(note);
+  };
+
+  const handleSaveNote = async () => {
+    if (!activeNote) return;
+    
+    try {
+      if (activeNote.noteId) {
+        // Update existing note
+        await api.put(`/api/notes/${activeNote.noteId}`, {
+          noteTitle: activeNote.noteTitle,
+          noteBody: activeNote.noteBody,
+          categoryId: activeNote.categoryId,
+          isPinned: activeNote.isPinned
+        });
+      } else {
+        // Create new note
+        const response = await api.post("/api/notes/", {
+          noteTitle: activeNote.noteTitle || "Untitled",
+          noteBody: activeNote.noteBody || "",
+          categoryId: activeNote.categoryId,
+          isPinned: activeNote.isPinned || false
+        });
+        activeNote.noteId = response.data.noteId;
+      }
+      fetchNotes();
+    } catch (err) {
+      console.error("Error saving note:", err);
+      setError("Failed to save note");
+    }
+  };
+
+  const handleDeleteNote = async () => {
+    if (!activeNote?.noteId) return;
+    
+    if (window.confirm("Are you sure you want to delete this note?")) {
+      try {
+        await api.delete(`/api/notes/${activeNote.noteId}`);
+        fetchNotes();
+        setActiveNote(null);
+      } catch (err) {
+        console.error("Error deleting note:", err);
+        setError("Failed to delete note");
+      }
+    }
+  };
+
+  const handleTogglePinned = () => {
+    if (activeNote) {
+      setActiveNote({...activeNote, isPinned: !activeNote.isPinned});
+    }
+  };
+
+  const handleNewNote = () => {
+    const newNote = {
+      noteTitle: "Untitled",
+      noteBody: "",
+      categoryId: null,
+      isPinned: false
+    };
+    setActiveNote(newNote);
+  };
+
+  if (loading) {
+    return <div style={{...styles.container, justifyContent: "center", alignItems: "center"}}>Loading...</div>;
+  }
 
   return (
     <div style={styles.container}>
       {/* 1. SIDEBAR (Left) */}
       <aside style={styles.sidebar}>
-        <button style={styles.newNoteBtn}>New Note +</button>
+        <button style={styles.newNoteBtn} onClick={handleNewNote}>New Note +</button>
         
         <nav style={styles.navGroup}>
-          <div style={styles.navItemActive}>All Notes <span style={styles.badge}>12</span></div>
+          <div style={styles.navItemActive}>All Notes <span style={styles.badge}>{notes.length}</span></div>
           <div style={styles.navItem}>☆ Favorites</div>
           <div style={styles.navItem}>📁 Category</div>
           <div style={styles.navItem}>🏷️ Tags</div>
@@ -38,49 +138,70 @@ export default function Home() {
         <div style={styles.listHeader}>
           <input type="text" placeholder="Search notes..." style={styles.searchBar} />
         </div>
-        <div style={styles.notePreviewActive}>
-          <h4 style={{ margin: "0 0 5px 0" }}>Project Ideas</h4>
-          <p style={styles.previewText}>I've been thinking about possible features...</p>
-          <span style={styles.dateText}>April 9</span>
-        </div>
+        {error && <div style={{padding: "10px", color: "red"}}>{error}</div>}
+        {notes.map((note) => (
+          <div 
+            key={note.noteId}
+            style={{
+              ...styles.notePreviewActive,
+              backgroundColor: activeNote?.noteId === note.noteId ? "#4bb3fd" : "#2d2f34",
+              cursor: "pointer"
+            }}
+            onClick={() => handleSelectNote(note)}
+          >
+            <h4 style={{ margin: "0 0 5px 0" }}>{note.noteTitle}</h4>
+            <p style={styles.previewText}>{note.noteBody.substring(0, 50)}...</p>
+            <span style={styles.dateText}>{new Date(note.updatedAt).toLocaleDateString()}</span>
+          </div>
+        ))}
       </section>
 
       {/* 3. EDITOR (Right) */}
-      <main style={styles.editorContainer}>
-        {/* Toolbar */}
-        <div style={styles.toolbar}>
-          <div style={styles.toolbarLeft}>
-            <select style={styles.toolSelect}><option>Arial</option></select>
-            <span style={styles.toolIcon}>B</span>
-            <span style={styles.toolIcon}>I</span>
-            <span style={styles.toolIcon}>U</span>
-          </div>
-          <div style={styles.toolbarRight}>
-            <span>☆ Favorite</span>
-          </div>
+<main style={styles.editorContainer}>
+  {activeNote ? (
+    <>
+      {/* Toolbar */}
+      <div style={styles.toolbar}>
+        <div style={styles.toolbarLeft}>
+          <select style={styles.toolSelect}>
+            <option>Arial</option>
+          </select>
+          <span style={styles.toolIcon}>B</span>
+          <span style={styles.toolIcon}>I</span>
+          <span style={styles.toolIcon}>U</span>
         </div>
+        <div style={styles.toolbarRight}>
+          <span style={{cursor: "pointer"}} onClick={handleTogglePinned}>
+            {activeNote?.isPinned ? "★" : "☆"} Favorite
+          </span>
+          <button onClick={handleSaveNote} style={{marginLeft: "10px", padding: "5px 10px"}}>Save</button>
+        </div>
+      </div>
 
-        {/* Content Area */}
-        <div style={styles.editorArea}>
-          <input 
-            style={styles.titleInput} 
-            value={activeNote.title} 
-            onChange={(e) => setActiveNote({...activeNote, title: e.target.value})}
-          />
-          <textarea 
-            style={styles.contentInput} 
-            value={activeNote.content}
-            onChange={(e) => setActiveNote({...activeNote, content: e.target.value})}
-          />
-        </div>
+      {/* Content Area */}
+      <div style={styles.editorArea}>
+        <input 
+          style={styles.titleInput} 
+          value={activeNote.noteTitle || ""} 
+          onChange={(e) => setActiveNote({ ...activeNote, noteTitle: e.target.value })}
+        />
+        <textarea 
+          style={styles.contentInput} 
+          value={activeNote.noteBody || ""}
+          onChange={(e) => setActiveNote({ ...activeNote, noteBody: e.target.value })}
+        />
+      </div>
 
         {/* Floating Delete Button */}
-        <button style={styles.deleteFab}>🗑️</button>
+        {/* FIXED: Added onClick handler here where it belongs */}
         
         <footer style={styles.footer}>
-          <span>Word count: 842</span>
-          <span>LAST EDITED 5 MINUTES AGO</span>
+          <span>Last edited: {new Date(activeNote.updatedAt).toLocaleString()}</span>
         </footer>
+        </>
+          ) : (
+          <div style={{ padding: "20px", color: "#999" }}>Select a note or create a new one</div>
+        )}
       </main>
     </div>
   );
@@ -174,7 +295,25 @@ const styles = {
     justifyContent: "space-between",
   },
   toolIcon: { margin: "0 10px", color: "#9ca3af", cursor: "pointer" },
-  editorArea: { flex: 1, padding: "40px", display: "flex", flexDirection: "column" },
+  editbarLeft: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+  },
+  toolbarRight: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+  },
+  toolSelect: {
+    backgroundColor: "#2d2f34",
+    color: "#9ca3af",
+    border: "none",
+    padding: "5px 10px",
+    borderRadius: "4px",
+    cursor: "pointer",
+  },
+  toolorArea: { flex: 1, padding: "40px", display: "flex", flexDirection: "column" },
   titleInput: {
     fontSize: "2rem",
     fontWeight: "bold",

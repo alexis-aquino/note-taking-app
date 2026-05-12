@@ -1,62 +1,88 @@
 import { useState } from "react"
+import { useNavigate } from "react-router-dom"
 import notesLogo from "../assets/Notes Logo.svg"
+import api from "../utils/api"; // Import the API utility
 
 export default function Login() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [error, setError] = useState("")
-  const [loading, setLoading] = useState(false)
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    setError("")
+    setError("");
 
-    // basic validation
     if (!email || !password) {
-      setError("Please fill in all fields.")
-      return
+      setError("Please fill in all fields.");
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
     try {
-      // replace with your actual api call
-      // const res = await api.post('/auth/login', { email, password })
-      // navigate('/home')
-      alert("Login successful! (wire up your API here)")
+      const response = await api.post("/api/auth/login", { 
+        userEmail: email,
+        userPassword: password 
+      });
+
+      if (response.data.message) {
+        navigate('/Home'); 
+      }
     } catch (err) {
-      setError("Invalid email or password.")
+      console.error("Login Error:", err.response?.data?.error);
+      setError(err.response?.data?.error || "Invalid email or password.");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
-  
+  };
+
   return (
     <div style={styles.mainWrapper}>
-      {/* LEFT SIDE: Dark Branding */}
       <div style={styles.leftPanel}>
         <h1 style={styles.logo}><img src={notesLogo} style={{ width: '300px' }} alt="NoteApp Logo" /></h1>
-        <p style={styles.tagline}>
-          Your thoughts, <br />organized and <br/>accessible <br/>everywhere.
-        </p>
+        <p style={styles.tagline}>Your thoughts, <br />organized and <br/>accessible <br/>everywhere.</p>
       </div>
 
-      {/* RIGHT SIDE: White Login Form */}
       <div style={styles.rightPanel}>
         <div style={styles.formContainer}>
           <h2 style={styles.welcomeText}>Welcome Back</h2>
           <p style={styles.subtext}>Please enter your details to sign in.</p>
 
+          {/* Show the error message if it exists */}
+          {error && <p style={{ color: "red", marginBottom: "10px" }}>{error}</p>}
+
           <label style={styles.label}>Email Address</label>
-          <input style={styles.input} type="email" placeholder="name@example.com" />
+          <input 
+            style={styles.input} 
+            type="email" 
+            placeholder="name@example.com" 
+            value={email} // BIND STATE
+            onChange={(e) => setEmail(e.target.value)} // UPDATE STATE
+          />
 
           <label style={styles.label}>Password</label>
-          <input style={styles.input} type="password" placeholder="••••••••" />
+          <input 
+            style={styles.input} 
+            type="password" 
+            placeholder="••••••••" 
+            value={password} // BIND STATE
+            onChange={(e) => setPassword(e.target.value)} // UPDATE STATE
+          />
 
-          <button style={styles.signInButton}>Sign In →</button>
+          <button style={styles.signInButton} onClick={handleLogin} disabled={loading}>
+            {loading ? "Signing In..." : "Sign In →"}
+          </button>
+
+          <div style={styles.footerText}>
+            Don't have an account?{" "}
+            <span style={styles.link} onClick={() => navigate('/SignUp')}>
+              Create Account
+            </span>
+          </div>
         </div>
       </div>
     </div>
   );
-
 }
 
 const styles = {
@@ -109,5 +135,19 @@ const styles = {
     border: "none",
     fontSize: "1rem",
   },
+  footerText: {
+    marginTop: "20px",
+    textAlign: "center", // Or "left" depending on your preference
+    color: "#666",
+    fontSize: "0.95rem",
+  },
+  link: {
+    color: "#000",        // Black color like in the image
+    fontWeight: "bold",   // Bold text
+    textDecoration: "underline", 
+    cursor: "pointer",    // Makes it feel like a link
+    marginLeft: "5px",
+  },
+
 };
   

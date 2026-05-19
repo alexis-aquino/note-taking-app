@@ -60,6 +60,71 @@ authRouter.post('/logout', (req, res) => {
         return res.status(200).json({ message: 'Logged out.' });
     });
 });
+authRouter.get('/me', async (req, res) => {
+    if (!req.session || !req.session.currentUserId) {
+        return res.status(401).json({ error: 'Unauthorized.' });
+    }
+    try {
+        const [rows] = await dbPool.query(
+            'SELECT userId, userEmail, displayName, createdAt FROM users WHERE userId = ?',
+            [req.session.currentUserId]
+        );
+        if (rows.length === 0) return res.status(404).json({ error: 'User not found.' });
+        return res.status(200).json(rows[0]);
+    } catch (err) {
+        return res.status(500).json({ error: 'Failed to fetch profile.' });
+    }
+});
+
+authRouter.put('/me', async (req, res) => {
+    if (!req.session || !req.session.currentUserId) {
+        return res.status(401).json({ error: 'Unauthorized.' });
+    }
+    const { displayName } = req.body;
+    if (!displayName || !displayName.trim()) {
+        return res.status(400).json({ error: 'Display name is required.' });
+    }
+    try {
+        await dbPool.query(
+            'UPDATE users SET displayName = ? WHERE userId = ?',
+            [displayName.trim(), req.session.currentUserId]
+        );
+        return res.status(200).json({ message: 'Profile updated.' });
+    } catch (err) {
+        return res.status(500).json({ error: 'Failed to update profile.' });
+    }
+});
+
+authRouter.put('/change-password', async (req, res) => {
+    if (!req.session || !req.session.currentUserId) {
+        return res.status(401).json({ error: 'Unauthorized.' });
+    }
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword) {
+        return res.status(400).json({ error: 'All fields are required.' });
+    }
+    if (newPassword.length < 6) {
+        return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+    }
+    try {
+        const [rows] = await dbPool.query(
+            'SELECT passwordHash FROM users WHERE userId = ?',
+            [req.session.currentUserId]
+        );
+        if (rows.length === 0) return res.status(404).json({ error: 'User not found.' });
+        const match = await bcrypt.compare(currentPassword, rows[0].passwordHash);
+        if (!match) return res.status(401).json({ error: 'Current password is incorrect.' });
+        const newHash = await bcrypt.hash(newPassword, saltRounds);
+        await dbPool.query(
+            'UPDATE users SET passwordHash = ? WHERE userId = ?',
+            [newHash, req.session.currentUserId]
+        );
+        return res.status(200).json({ message: 'Password changed.' });
+    } catch (err) {
+        return res.status(500).json({ error: 'Failed to change password.' });
+    }
+});
+
 authRouter.delete('/account', async (req, res) => {
     if (!req.session || !req.session.currentUserId) {
         return res.status(401).json({ error: 'Unauthorized.' });

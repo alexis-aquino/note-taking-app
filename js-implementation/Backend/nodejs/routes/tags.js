@@ -34,7 +34,7 @@ tagsRouter.get('/', async (req, res) => {
                     COUNT(nt.noteId) AS noteCount
              FROM tags t
              LEFT JOIN note_tags nt ON nt.tagId = t.tagId
-             LEFT JOIN notes n ON n.noteId = nt.noteId AND n.isTrash = 0 AND n.isArchived = 0
+             LEFT JOIN notes n ON n.noteId = nt.noteId AND n.isTrash = 0
              WHERE t.userId = ?
              GROUP BY t.tagId
              ORDER BY t.tagName ASC`,
@@ -52,10 +52,10 @@ tagsRouter.get('/:tagId/notes', async (req, res) => {
     const { tagId } = req.params;
     try {
         const [rows] = await dbPool.query(
-            `SELECT n.noteId, n.noteTitle, n.noteBody, n.isPinned, n.isFavorite, n.updatedAt
+            `SELECT n.noteId, n.noteTitle, n.noteBody, n.isPinned, n.updatedAt
              FROM notes n
              JOIN note_tags nt ON nt.noteId = n.noteId
-             WHERE nt.tagId = ? AND n.userId = ? AND n.isTrash = 0 AND n.isArchived = 0
+             WHERE nt.tagId = ? AND n.userId = ? AND n.isTrash = 0
              ORDER BY n.isPinned DESC, n.updatedAt DESC`,
             [tagId, currentUserId]
         );

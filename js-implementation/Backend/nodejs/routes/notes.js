@@ -136,6 +136,7 @@ notesRouter.post('/', async (req, res) => {
 notesRouter.put('/:noteId', async (req, res) => {
     const currentUserId = req.session.currentUserId;
     const { noteId } = req.params;
+    const { noteTitle, noteBody, categoryId, isPinned, isTrash } = req.body;
     try {
         const [check] = await dbPool.query(
             'SELECT noteId FROM notes WHERE noteId = ? AND userId = ?',

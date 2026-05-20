@@ -5,6 +5,7 @@ import { useUser } from "../utils/useUser";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 import RichTextEditor from "../components/RichTextEditor";
+import { TrashIcon, PinIcon } from "../../../../shared-resources/icons";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -306,7 +307,7 @@ export default function Home() {
                   >
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
                       <h4 style={s.cardTitle}>{note.noteTitle || "Untitled Note"}</h4>
-                      {note.isPinned && <span style={{ color: "#38bdf8", fontSize: "0.85rem" }}>📌</span>}
+                      {note.isPinned && <span style={{ color: "#38bdf8", fontSize: "0.85rem" }}><PinIcon /></span>}
                     </div>
                     <p style={s.cardSnippet}>{note.noteBody ? note.noteBody.replace(/<[^>]*>/g, "").substring(0, 65) + "…" : "Empty note…"}</p>
                     <span style={s.cardTime}>
@@ -327,12 +328,13 @@ export default function Home() {
                     style={{ ...s.toolBtn, color: activeNote.isPinned ? "#38bdf8" : "#9ca3af" }}
                     onClick={handleTogglePinned}
                   >
-                    {activeNote.isPinned ? "📌 Pinned" : "📌 Pin"}
+                  <PinIcon />
+                    {activeNote.isPinned ? "Pinned" : "Pin"}
                   </button>
                   <button style={s.toolBtn} onClick={handleSaveNote}>💾 Save</button>
                 </div>
                 <button style={{ ...s.toolBtn, color: "#f87171" }} onClick={handleTrash}>
-                  🗑️ Move to Trash
+                  <TrashIcon /> Move to Trash
                 </button>
               </div>
 

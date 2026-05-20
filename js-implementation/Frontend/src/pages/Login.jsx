@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import notesLogo from "../../../../shared-resources/Notes Logo.svg";
 import api from "../utils/api";
+import { ShowPass, HidePass } from "../../../../shared-resources/icons";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -76,7 +77,7 @@ export default function Login() {
                 onClick={() => setShowPassword(!showPassword)}
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? "🙈" : "👁️"}
+                {showPassword ? <HidePass /> : <ShowPass />}
               </button>
             </div>
           </div>
@@ -95,7 +96,7 @@ export default function Login() {
           </div>
 
           <button type="submit" style={{ ...s.btn, opacity: loading ? 0.7 : 1 }} disabled={loading}>
-            {loading ? "Signing in…" : "Sign In →"}
+            {loading ? "Signing in…" : "Sign In"}
           </button>
 
           {error && <p style={s.error}>{error}</p>}

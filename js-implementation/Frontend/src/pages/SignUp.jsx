@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import notesLogo from "../../../../shared-resources/Notes Logo.svg";
 import api from "../utils/api";
+import { ShowPass, HidePass } from "../../../../shared-resources/icons"; 
 
 export default function SignUp() {
   const navigate = useNavigate();
@@ -87,7 +88,7 @@ export default function SignUp() {
                 onChange={set("password")}
               />
               <button type="button" style={s.eyeBtn} onClick={() => setShowPassword(!showPassword)} aria-label="Toggle password">
-                {showPassword ? "🙈" : "👁️"}
+                {showPassword ? <HidePass /> : <ShowPass />}
               </button>
             </div>
             {/* Password rules */}
@@ -111,7 +112,7 @@ export default function SignUp() {
                 onChange={set("confirmPassword")}
               />
               <button type="button" style={s.eyeBtn} onClick={() => setShowConfirm(!showConfirm)} aria-label="Toggle confirm password">
-                {showConfirm ? "🙈" : "👁️"}
+                {showConfirm ? <HidePass /> : <ShowPass />}
               </button>
             </div>
           </div>
@@ -145,9 +146,18 @@ const s = {
     color: "rgba(255,255,255,0.65)", textDecoration: "none",
     fontSize: "0.88rem", display: "flex", alignItems: "center", gap: "4px"
   },
-  welcomeTo: { fontSize: "1rem", opacity: 0.75, marginBottom: "10px" },
-  logo: { width: "190px", marginBottom: "40px" },
-  tagline: { fontSize: "2rem", fontWeight: "700", lineHeight: "1.3", opacity: 0.9 },
+  welcomeTo: { fontSize: "2rem", fontWeight: "700", marginBottom: "10px" },
+  logo: { 
+    width: "100%",        
+    maxWidth: "320px",    
+    marginBottom: "1px" 
+  },
+  tagline: { 
+    fontSize: "1.75rem",  // Slightly pulled back for better hierarchical balance
+    fontWeight: "600", 
+    lineHeight: "1.4", 
+    color: "#ffffff", 
+  },
   right: {
     flex: 1, backgroundColor: "#dde1e5",
     display: "flex", justifyContent: "center", alignItems: "center", overflowY: "auto"

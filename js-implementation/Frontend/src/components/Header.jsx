@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { SearchIcon } from "../../../../shared-resources/icons";
 
 export default function Header({ searchQuery = "", setSearchQuery, user }) {
   const navigate = useNavigate();
@@ -9,7 +10,7 @@ export default function Header({ searchQuery = "", setSearchQuery, user }) {
   return (
     <header style={s.header}>
       <div style={s.searchWrap}>
-        <span style={s.searchIcon}>🔍</span>
+        <span style={s.searchIcon}><SearchIcon /></span>
         <input
           type="text"
           placeholder="Search notes, tags, or categories..."

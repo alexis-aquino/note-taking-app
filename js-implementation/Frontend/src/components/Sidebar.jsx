@@ -1,7 +1,8 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import notesLogo from '../../../../shared-resources/Notes Logo.svg';
+import notesLogo from "../../../../shared-resources/Notes Logo.svg";
 import api from "../utils/api";
+import { TagIcon, LockIcon, TrashIcon, CategoryIcon, UserIcon, LogoutIcon } from "../../../../shared-resources/icons";
 
 export default function Sidebar({ onNewNote, counts = {} }) {
   const navigate = useNavigate();
@@ -19,9 +20,9 @@ export default function Sidebar({ onNewNote, counts = {} }) {
 
   const navItems = [
     { label: "All Notes", path: "/Home", icon: "", badge: counts.notes ?? null },
-    { label: "Category", path: "/category", icon: "📁" },
-    { label: "Tags", path: "/tags", icon: "🏷️" },
-    { label: "Trash", path: "/trash", icon: "🗑️", badge: counts.trash ?? null },
+    { label: "Category", path: "/category", icon: <CategoryIcon />},
+    { label: "Tags", path: "/tags", icon: <TagIcon /> },
+    { label: "Trash", path: "/trash", icon: <TrashIcon />, badge: counts.trash ?? null },
   ];
 
   const isActive = (path) => location.pathname.toLowerCase() === path.toLowerCase();
@@ -62,7 +63,7 @@ export default function Sidebar({ onNewNote, counts = {} }) {
           onClick={() => navigate("/settings")}
         >
           <span style={s.itemLeft}>
-            <span style={s.itemIcon}>⚙️</span> Account Management
+            <span style={s.itemIcon}><UserIcon /></span> Account Management
           </span>
         </div>
         <div
@@ -70,7 +71,7 @@ export default function Sidebar({ onNewNote, counts = {} }) {
           onClick={handleLogout}
         >
           <span style={s.itemLeft}>
-            <span style={s.itemIcon}>↳</span> Log Out
+            <span style={s.itemIcon}><LogoutIcon /></span> Log Out
           </span>
         </div>
       </div>

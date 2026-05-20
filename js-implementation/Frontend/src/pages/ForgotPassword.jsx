@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import notesLogo from "../../../../shared-resources/Notes Logo.svg";
 import api from "../utils/api";
+import { LockIcon, HidePass, ShowPass, WarningIcon } from "../../../../shared-resources/icons";
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
@@ -54,12 +55,12 @@ export default function ForgotPassword() {
       <div style={s.center}>
         <div style={s.card}>
           <div style={s.iconWrap}>
-            <span style={s.lockIcon}>🔒</span>
+            <span style={s.lockIcon}><LockIcon /></span>
           </div>
           <h2 style={s.title}>Change Password</h2>
 
           <div style={s.infoBanner}>
-            <span style={s.infoIcon}>ℹ️</span>
+            <span style={s.infoIcon}><WarningIcon /></span>
             <p style={s.infoText}>
               Your password must be at least 6 characters and should include a combination of numbers, letters and special characters (!$@%).
             </p>
@@ -69,7 +70,7 @@ export default function ForgotPassword() {
             <div style={s.field}>
               <label style={s.label}>Current Password</label>
               <div style={s.inputWrap}>
-                <span style={s.fieldIcon}>🔒</span>
+                <span style={s.fieldIcon}><LockIcon /></span>
                 <input
                   style={s.input}
                   type={showCurrent ? "text" : "password"}
@@ -78,7 +79,7 @@ export default function ForgotPassword() {
                   onChange={(e) => setCurrentPassword(e.target.value)}
                 />
                 <button type="button" style={s.eyeBtn} onClick={() => setShowCurrent(!showCurrent)}>
-                  {showCurrent ? "🙈" : "👁️"}
+                  {showCurrent ? <HidePass /> : <ShowPass />}
                 </button>
               </div>
             </div>
@@ -86,7 +87,7 @@ export default function ForgotPassword() {
             <div style={s.field}>
               <label style={s.label}>New Password</label>
               <div style={s.inputWrap}>
-                <span style={s.fieldIcon}>🔒</span>
+                <span style={s.fieldIcon}><LockIcon /></span>
                 <input
                   style={s.input}
                   type={showNew ? "text" : "password"}
@@ -95,7 +96,7 @@ export default function ForgotPassword() {
                   onChange={(e) => setNewPassword(e.target.value)}
                 />
                 <button type="button" style={s.eyeBtn} onClick={() => setShowNew(!showNew)}>
-                  {showNew ? "🙈" : "👁️"}
+                  {showNew ? <HidePass /> : <ShowPass />}
                 </button>
               </div>
             </div>
@@ -103,7 +104,7 @@ export default function ForgotPassword() {
             <div style={s.field}>
               <label style={s.label}>Confirm New Password</label>
               <div style={s.inputWrap}>
-                <span style={s.fieldIcon}>🔒</span>
+                <span style={s.fieldIcon}><LockIcon /></span>
                 <input
                   style={s.input}
                   type={showConfirm ? "text" : "password"}
@@ -112,7 +113,7 @@ export default function ForgotPassword() {
                   onChange={(e) => setConfirmPassword(e.target.value)}
                 />
                 <button type="button" style={s.eyeBtn} onClick={() => setShowConfirm(!showConfirm)}>
-                  {showConfirm ? "🙈" : "👁️"}
+                  {showConfirm ? <HidePass /> : <ShowPass />}
                 </button>
               </div>
             </div>
@@ -121,7 +122,7 @@ export default function ForgotPassword() {
             {success && <p style={s.successMsg}>{success}</p>}
 
             <button type="submit" style={{ ...s.enterBtn, opacity: loading ? 0.7 : 1 }} disabled={loading}>
-              {loading ? "Saving…" : "Change Password →"}
+              {loading ? "Saving…" : "Change Password"}
             </button>
           </form>
 

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../utils/api";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
+import { UserIcon, TrashIcon, LockIcon, EmailIcon } from "../../../../shared-resources/icons";
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -97,7 +98,7 @@ export default function Settings() {
               <div style={s.fieldGroup}>
                 <label style={s.label}>Display Name</label>
                 <div style={s.inputWrap}>
-                  <span style={s.inputIcon}>👤</span>
+                  <span style={s.inputIcon}><UserIcon /></span>
                   <input
                     style={s.input}
                     type="text"
@@ -109,14 +110,14 @@ export default function Settings() {
               <div style={s.fieldGroup}>
                 <label style={s.label}>Email Address</label>
                 <div style={s.inputWrap}>
-                  <span style={s.inputIcon}>✉️</span>
+                  <span style={s.inputIcon}><EmailIcon /></span>
                   <input style={{ ...s.input, color: "#9ca3af" }} type="email" value={user?.userEmail || ""} disabled />
                 </div>
               </div>
               <div style={s.fieldGroup}>
                 <label style={s.label}>Password</label>
                 <div style={s.inputWrap}>
-                  <span style={s.inputIcon}>🔒</span>
+                  <span style={s.inputIcon}><LockIcon /></span>
                   <input style={s.input} type="password" value="••••••••••••" disabled />
                 </div>
               </div>
@@ -124,7 +125,7 @@ export default function Settings() {
 
             <div style={s.actionButtons}>
               <button style={s.changePasswordBtn} onClick={() => navigate("/forgot-password")}>
-                Change Password →
+                Change Password
               </button>
             </div>
 
@@ -150,7 +151,7 @@ export default function Settings() {
 
 
           <button style={s.deleteBtn} onClick={handleDeleteAccount}>
-            🗑️ Delete Account
+            <TrashIcon /> Delete Account
           </button>
         </main>
       </div>

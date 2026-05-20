@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import notesLogo from "../assets/Notes Logo.svg";
+import notesLogo from "../../../../shared-resources/Notes Logo.svg";
 import api from "../utils/api";
 
 export default function Login() {

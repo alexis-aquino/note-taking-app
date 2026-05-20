@@ -1,5 +1,6 @@
+import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import notesLogo from "../assets/Notes Logo.svg";
+import notesLogo from '../../../../shared-resources/Notes Logo.svg';
 import api from "../utils/api";
 
 export default function Sidebar({ onNewNote, counts = {} }) {
@@ -17,7 +18,7 @@ export default function Sidebar({ onNewNote, counts = {} }) {
   };
 
   const navItems = [
-    { label: "All Notes", path: "/Home", icon: "📄", badge: counts.notes ?? null },
+    { label: "All Notes", path: "/Home", icon: "", badge: counts.notes ?? null },
     { label: "Category", path: "/category", icon: "📁" },
     { label: "Tags", path: "/tags", icon: "🏷️" },
     { label: "Trash", path: "/trash", icon: "🗑️", badge: counts.trash ?? null },

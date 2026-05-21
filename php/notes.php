@@ -44,43 +44,52 @@ function sendNotFound(): void {
 try {
     if ($httpMethod === 'GET' && $actionParam === 'search') {
         $searchQuery = trim($_GET['q'] ?? '');
-    if ($searchQuery === '') {
-        http_response_code(400);
-        echo json_encode(['error' => 'Search query cannot be empty.']);
-        exit;
-    }
+        $categoryId = isset($_GET['categoryId']) && $_GET['categoryId'] !== '' ? (int)$_GET['categoryId'] : null;
 
-    $stmt = $dbConnection->prepare(
-        'SELECT noteId, noteTitle, noteBody, isPinned, categoryId,
-        createdAt, updatedAt,
-        MATCH(noteTitle, noteBody) AGAINST(:q IN BOOLEAN MODE) AS relevanceScore
-        FROM notes
-        WHERE userId = :userId
-        AND MATCH(noteTitle, noteBody) AGAINST(:q2 IN BOOLEAN MODE)
-        ORDER BY relevanceScore DESC'
-    );
+        $sql = 'SELECT noteId, noteTitle, noteBody, isPinned, categoryId, createdAt, updatedAt 
+                FROM notes 
+                WHERE userId = :userId';
+        $params = [':userId' => $currentUserId];
 
-    $stmt->execute([':q' => $searchQuery, ':userId' => $currentUserId,
-        ':q2' => $searchQuery]);
-    $rows = $stmt->fetchAll();
+        if ($searchQuery !== '') {
+            $sql .= ' AND MATCH(noteTitle, noteBody) AGAINST(:q IN BOOLEAN MODE)';
+            $params[':q'] = $searchQuery;
+        }
 
-    foreach ($rows as &$row) {
-        $row['noteBodyHtml'] = renderMarkdown($mdConverter, $row['noteBody']);
-    }
+        if ($categoryId !== null) {
+            $sql .= ' AND categoryId = :catId';
+            $params[':catId'] = $categoryId;
+        }
+
+        if ($searchQuery !== '') {
+            $sql .= ' ORDER BY MATCH(noteTitle, noteBody) AGAINST(:q_order IN BOOLEAN MODE) DESC, isPinned DESC, updatedAt DESC';
+            $params[':q_order'] = $searchQuery; 
+        } else {
+            $sql .= ' ORDER BY isPinned DESC, updatedAt DESC';
+        }
+
+        $stmt = $dbConnection->prepare($sql);
+        $stmt->execute($params);
+        $rows = $stmt->fetchAll();
+
+        foreach ($rows as &$row) {
+            $row['noteBodyHtml'] = renderMarkdown($mdConverter, $row['noteBody']);
+        }
         echo json_encode($rows);
         exit;
     }
 
     if ($httpMethod === 'GET' && $noteIdParam !== null) {
         $stmt = $dbConnection->prepare(
-        'SELECT noteId, noteTitle, noteBody, isPinned, categoryId, createdAt, updatedAt
-        FROM notes WHERE noteId = ? AND userId = ?'
-    );
+            'SELECT noteId, noteTitle, noteBody, isPinned, categoryId, createdAt, updatedAt
+            FROM notes WHERE noteId = ? AND userId = ?'
+        );
 
-    $stmt->execute([$noteIdParam, $currentUserId]);
-    $row = $stmt->fetch();
+        $stmt->execute([$noteIdParam, $currentUserId]);
+        $row = $stmt->fetch();
 
-    if (!$row) sendNotFound();
+        if (!$row) sendNotFound();
+        
         $row['noteBodyHtml'] = renderMarkdown($mdConverter, $row['noteBody']);
         echo json_encode($row);
         exit;
@@ -107,7 +116,7 @@ try {
         $body = json_decode(file_get_contents('php://input'), true);
         $noteTitle = trim($body['noteTitle'] ?? '');
         $noteBody = trim($body['noteBody'] ?? '');
-        $categoryId = isset($body['categoryId']) ? (int)$body['categoryId'] : null;
+        $categoryId = !empty($body['categoryId']) ? (int)$body['categoryId'] : 1;
         $isPinned = !empty($body['isPinned']) ? 1 : 0;
     
     if ($noteTitle === '' || $noteBody === '') {
@@ -132,7 +141,7 @@ try {
         $body = json_decode(file_get_contents('php://input'), true);
         $noteTitle = trim($body['noteTitle'] ?? '');
         $noteBody = trim($body['noteBody'] ?? '');
-        $categoryId = isset($body['categoryId']) ? (int)$body['categoryId'] : null;
+        $categoryId = !empty($body['categoryId']) ? (int)$body['categoryId'] : 1;
         $isPinned = !empty($body['isPinned']) ? 1 : 0;
 
     if ($noteTitle === '' || $noteBody === '') {

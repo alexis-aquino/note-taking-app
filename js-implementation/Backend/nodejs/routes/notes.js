@@ -15,17 +15,16 @@ function renderMarkdown(rawMarkdown) {
 
 notesRouter.use(authenticate);
 
-// GET all notes (active only — not trashed)
+// GET all notes (active only)
 notesRouter.get('/', async (req, res) => {
     const currentUserId = req.session.currentUserId;
     try {
         const [noteRows] = await dbPool.query(
             `SELECT n.noteId, n.noteTitle, n.noteBody, n.isPinned,
-                    n.isTrash, n.categoryId, c.categoryName,
-                    n.createdAt, n.updatedAt
+                n.categoryId, c.categoryName, n.createdAt, n.updatedAt
              FROM notes n
              LEFT JOIN categories c ON n.categoryId = c.categoryId
-             WHERE n.userId = ? AND n.isTrash = 0
+             WHERE n.userId = ?
              ORDER BY n.isPinned DESC, n.updatedAt DESC`,
             [currentUserId]
         );
@@ -41,25 +40,6 @@ notesRouter.get('/', async (req, res) => {
 });
 
 
-// GET trashed notes
-notesRouter.get('/trash', async (req, res) => {
-    const currentUserId = req.session.currentUserId;
-    try {
-        const [rows] = await dbPool.query(
-            `SELECT n.noteId, n.noteTitle, n.noteBody, n.isPinned,
-                    n.isTrash, n.categoryId, c.categoryName,
-                    n.createdAt, n.updatedAt
-             FROM notes n
-             LEFT JOIN categories c ON n.categoryId = c.categoryId
-             WHERE n.userId = ? AND n.isTrash = 1
-             ORDER BY n.updatedAt DESC`,
-            [currentUserId]
-        );
-        return res.status(200).json(rows);
-    } catch (err) {
-        return res.status(500).json({ error: 'Failed to retrieve trash.' });
-    }
-});
 
 // GET search
 notesRouter.get('/search', async (req, res) => {
@@ -71,12 +51,12 @@ notesRouter.get('/search', async (req, res) => {
     try {
         const [searchRows] = await dbPool.query(
             `SELECT n.noteId, n.noteTitle, n.noteBody, n.isPinned,
-                    n.isTrash, n.categoryId, c.categoryName,
+                    n.categoryId, c.categoryName,
                     n.createdAt, n.updatedAt,
                     MATCH(n.noteTitle, n.noteBody) AGAINST(? IN BOOLEAN MODE) AS relevanceScore
              FROM notes n
              LEFT JOIN categories c ON n.categoryId = c.categoryId
-             WHERE n.userId = ? AND n.isTrash = 0
+             WHERE n.userId = ?
              AND MATCH(n.noteTitle, n.noteBody) AGAINST(? IN BOOLEAN MODE)
              ORDER BY relevanceScore DESC`,
             [searchQuery, currentUserId, searchQuery]
@@ -97,7 +77,7 @@ notesRouter.get('/:noteId', async (req, res) => {
     try {
         const [rows] = await dbPool.query(
             `SELECT n.noteId, n.noteTitle, n.noteBody, n.isPinned,
-                    n.isTrash, n.categoryId, c.categoryName,
+                    n.categoryId, c.categoryName,
                     n.createdAt, n.updatedAt
              FROM notes n
              LEFT JOIN categories c ON n.categoryId = c.categoryId
@@ -136,7 +116,7 @@ notesRouter.post('/', async (req, res) => {
 notesRouter.put('/:noteId', async (req, res) => {
     const currentUserId = req.session.currentUserId;
     const { noteId } = req.params;
-    const { noteTitle, noteBody, categoryId, isPinned, isTrash } = req.body;
+    const { noteTitle, noteBody, categoryId, isPinned } = req.body;
     try {
         const [check] = await dbPool.query(
             'SELECT noteId FROM notes WHERE noteId = ? AND userId = ?',
@@ -151,8 +131,6 @@ notesRouter.put('/:noteId', async (req, res) => {
         if (noteBody !== undefined) { fields.push('noteBody = ?'); values.push(noteBody); }
         if (categoryId !== undefined) { fields.push('categoryId = ?'); values.push(categoryId || null); }
         if (isPinned !== undefined) { fields.push('isPinned = ?'); values.push(isPinned ? 1 : 0); }
-        if (isTrash !== undefined) { fields.push('isTrash = ?'); values.push(isTrash ? 1 : 0); }
-
         if (fields.length === 0) return res.status(400).json({ error: 'No fields to update.' });
 
         values.push(noteId, currentUserId);
@@ -166,19 +144,6 @@ notesRouter.put('/:noteId', async (req, res) => {
     }
 });
 
-// DELETE empty trash — must be BEFORE /:noteId to avoid param conflict
-notesRouter.delete('/trash/empty', async (req, res) => {
-    const currentUserId = req.session.currentUserId;
-    try {
-        await dbPool.query(
-            'DELETE FROM notes WHERE userId = ? AND isTrash = 1',
-            [currentUserId]
-        );
-        return res.status(200).json({ message: 'Trash emptied.' });
-    } catch (err) {
-        return res.status(500).json({ error: 'Failed to empty trash.' });
-    }
-});
 
 // DELETE note permanently
 notesRouter.delete('/:noteId', async (req, res) => {

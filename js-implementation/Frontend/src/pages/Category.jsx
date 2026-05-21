@@ -160,7 +160,6 @@ export default function Category() {
                 <div style={s.emptyIcon}>📁</div>
                 <p style={s.emptyTitle}>No categories yet</p>
                 <p style={s.emptySub}>Create a category to organise your notes.</p>
-                <button style={s.addCatBtn} onClick={() => setShowAddForm(true)}>+ New Category</button>
               </div>
             ) : (
               <div style={s.grid}>

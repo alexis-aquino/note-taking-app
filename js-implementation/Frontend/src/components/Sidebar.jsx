@@ -22,7 +22,6 @@ export default function Sidebar({ onNewNote, counts = {} }) {
     { label: "All Notes", path: "/Home", icon: <NotesIcon />, badge: counts.notes ?? null },
     { label: "Category", path: "/category", icon: <CategoryIcon />},
     { label: "Tags", path: "/tags", icon: <TagIcon /> },
-    { label: "Trash", path: "/trash", icon: <TrashIcon />, badge: counts.trash ?? null },
   ];
 
   const isActive = (path) => location.pathname.toLowerCase() === path.toLowerCase();
@@ -33,7 +32,16 @@ export default function Sidebar({ onNewNote, counts = {} }) {
         <img src={notesLogo} alt="Notes" style={s.logo} />
       </div>
 
-      <button style={s.newNoteBtn} onClick={onNewNote}>
+      <button
+        style={s.newNoteBtn}
+        onClick={() => {
+          if (location.pathname.toLowerCase() === "/home") {
+            if (onNewNote) onNewNote();
+          } else {
+            navigate("/Home", { state: { openNewNote: true } });
+          }
+        }}
+      >
         New Note +
       </button>
 

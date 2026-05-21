@@ -5,7 +5,6 @@ import ForgotPassword from "./pages/ForgotPassword";
 import Home from "./pages/Home";
 import Category from "./pages/Category";
 import Tags from "./pages/Tags";
-import Trash from "./pages/Trash";
 import Settings from "./pages/Settings";
 
 export default function App() {
@@ -18,7 +17,6 @@ export default function App() {
         <Route path="/Home" element={<Home />} />
         <Route path="/category" element={<Category />} />
         <Route path="/tags" element={<Tags />} />
-        <Route path="/trash" element={<Trash />} />
         <Route path="/settings" element={<Settings />} />
       </Routes>
     </Router>

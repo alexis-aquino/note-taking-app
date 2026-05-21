@@ -5,7 +5,7 @@ import { useUser } from "../utils/useUser";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 import RichTextEditor from "../components/RichTextEditor";
-import { TrashIcon, PinIcon } from "../../../../shared-resources/icons";
+import { TrashIcon, PinIcon, SaveIcon} from "../../../../shared-resources/icons";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -307,7 +307,7 @@ export default function Home() {
                   >
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
                       <h4 style={s.cardTitle}>{note.noteTitle || "Untitled Note"}</h4>
-                      {note.isPinned && <span style={{ color: "#38bdf8", fontSize: "0.85rem" }}><PinIcon /></span>}
+                      {note.isPinned && <span style={{ color: "#d43434", fontSize: "0.85rem", transform: "rotate(45deg)"}}><PinIcon /></span>}
                     </div>
                     <p style={s.cardSnippet}>{note.noteBody ? note.noteBody.replace(/<[^>]*>/g, "").substring(0, 65) + "…" : "Empty note…"}</p>
                     <span style={s.cardTime}>
@@ -325,13 +325,15 @@ export default function Home() {
               <div style={s.toolbar}>
                 <div style={{ display: "flex", gap: "8px" }}>
                   <button
-                    style={{ ...s.toolBtn, color: activeNote.isPinned ? "#38bdf8" : "#9ca3af" }}
+                    style={{ ...s.toolBtn, 
+                      color: activeNote.isPinned ? "#d43434" : "#9ca3af", 
+                      transform: activeNote.isPinned ? "rotate(45deg)" : "rotate(0deg)", 
+                      transition: "transform 0.2s ease, color 0.2s",}}
                     onClick={handleTogglePinned}
                   >
-                  <PinIcon />
-                    {activeNote.isPinned ? "Pinned" : "Pin"}
+                    {activeNote.isPinned ? <PinIcon /> : <PinIcon />}
                   </button>
-                  <button style={s.toolBtn} onClick={handleSaveNote}>💾 Save</button>
+                  <button style={s.toolBtn} onClick={handleSaveNote}><SaveIcon /></button>
                 </div>
                 <button style={{ ...s.toolBtn, color: "#f87171" }} onClick={handleTrash}>
                   <TrashIcon /> Move to Trash
@@ -419,7 +421,7 @@ export default function Home() {
                   }}
                   onClick={() => setDraft({ ...draft, isPinned: !draft.isPinned })}
                   title={draft.isPinned ? "Unpin note" : "Pin note"}
-                >📌</button>
+                ><PinIcon /></button>
                 <span style={{ color: draft.isPinned ? "#38bdf8" : "#9ca3af", fontSize: "0.82rem", fontWeight: draft.isPinned ? "600" : "400" }}>
                   {draft.isPinned ? "Pinned" : "Pin Note"}
                 </span>

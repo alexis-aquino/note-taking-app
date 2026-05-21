@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import notesLogo from "../../../../shared-resources/Notes Logo.svg";
 import api from "../utils/api";
-import { TagIcon, LockIcon, TrashIcon, CategoryIcon, UserIcon, LogoutIcon } from "../../../../shared-resources/icons";
+import { TagIcon, LockIcon, TrashIcon, CategoryIcon, UserIcon, LogoutIcon, NotesIcon } from "../../../../shared-resources/icons";
 
 export default function Sidebar({ onNewNote, counts = {} }) {
   const navigate = useNavigate();
@@ -19,7 +19,7 @@ export default function Sidebar({ onNewNote, counts = {} }) {
   };
 
   const navItems = [
-    { label: "All Notes", path: "/Home", icon: "", badge: counts.notes ?? null },
+    { label: "All Notes", path: "/Home", icon: <NotesIcon />, badge: counts.notes ?? null },
     { label: "Category", path: "/category", icon: <CategoryIcon />},
     { label: "Tags", path: "/tags", icon: <TagIcon /> },
     { label: "Trash", path: "/trash", icon: <TrashIcon />, badge: counts.trash ?? null },
@@ -93,11 +93,11 @@ const s = {
   logo: { height: "24px" },
   newNoteBtn: {
     width: "100%", padding: "11px", backgroundColor: "#38bdf8",
-    border: "none", borderRadius: "8px", color: "#0f172a",
+    border: "none", borderRadius: "8px", color: "#ffffff",
     fontWeight: "700", cursor: "pointer", marginBottom: "22px",
     fontSize: "0.9rem"
   },
-  nav: { flex: 1, display: "flex", flexDirection: "column", gap: "2px" },
+  nav: { flex: 1, display: "flex", flexDirection: "column", gap: "2px"},
   item: {
     padding: "9px 12px", borderRadius: "8px", cursor: "pointer",
     color: "#9ca3af", display: "flex", justifyContent: "space-between",
@@ -105,7 +105,7 @@ const s = {
   },
   itemActive: {
     padding: "9px 12px", borderRadius: "8px", cursor: "pointer",
-    color: "#fff", backgroundColor: "#2d3135",
+    color: "#1a1d20", backgroundColor: "#ffffff",
     display: "flex", justifyContent: "space-between",
     alignItems: "center", fontSize: "0.9rem", fontWeight: "600"
   },
@@ -116,7 +116,7 @@ const s = {
     padding: "1px 7px", borderRadius: "10px", fontSize: "0.72rem", fontWeight: "600"
   },
   badgeActive: {
-    backgroundColor: "#38bdf8", color: "#0f172a",
+    backgroundColor: "#bebfc1", color: "#0f172a",
     padding: "1px 7px", borderRadius: "10px", fontSize: "0.72rem", fontWeight: "700"
   },
   bottom: { borderTop: "1px solid #2d3135", paddingTop: "12px" }

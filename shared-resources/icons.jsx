@@ -4,12 +4,12 @@ export const TagIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="18px" height="18px" viewBox="0 0 18 18">
         <path d="M3.25,2.25h4.922c.53,0,1.039,.211,1.414,.586l5.75,5.75c.781,.781,.781,2.047,0,2.828l-3.922,3.922c-.781,.781-2.047,.781-2.828,0L2.836,9.586c-.375-.375-.586-.884-.586-1.414V3.25c0-.552,.448-1,1-1Z" 
             fill="none" 
-            stroke="#FFFFFF" 
+            stroke="currentColor" 
             strokeLinecap="round" 
             strokeLinejoin="round" 
             strokeWidth="1.5">
         </path>
-        <circle cx="6.25" cy="6.25" r="1.25" fill="#FFFFFF" data-color="color-2"></circle>
+        <circle cx="6.25" cy="6.25" r="1.25" fill="currentColor" data-color="color-2"></circle>
     </svg>
 )
 
@@ -76,7 +76,7 @@ export const CategoryIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="18px" height="18px" viewBox="0 0 18 18">
         <path d="M2.25,8.75V4.75c0-1.105,.895-2,2-2h1.951c.607,0,1.18,.275,1.56,.748l.603,.752h5.386c1.105,0,2,.895,2,2v2.844" 
             fill="none" 
-            stroke="#ffffff" 
+            stroke="currentColor" 
             strokeLinecap="round" 
             strokeLinejoin="round" 
             strokeWidth="1.5" 
@@ -84,7 +84,7 @@ export const CategoryIcon = () => (
         </path>
         <path d="M4.25,6.75H13.75c1.105,0,2,.895,2,2v4.5c0,1.105-.895,2-2,2H4.25c-1.105,0-2-.895-2-2v-4.5c0-1.105,.895-2,2-2Z" 
             fill="none" 
-            stroke="#ffffff" 
+            stroke="currentColor" 
             strokeLinecap="round" 
             strokeLinejoin="round" 
             strokeWidth="1.5">
@@ -134,12 +134,25 @@ export const LogoutIcon = () => (
     </svg>
 )
 
+export const NotesIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" 
+        fill="none" 
+        stroke="currentColor" 
+        strokeWidth="2"
+        strokeLinecap="round" 
+        strokeLinejoin="round" 
+        className="lucide lucide-book-heart-icon lucide-book-heart">
+        <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/>
+        <path d="M8.62 9.8A2.25 2.25 0 1 1 12 6.836a2.25 2.25 0 1 1 3.38 2.966l-2.626 2.856a.998.998 0 0 1-1.507 0z"/>
+    </svg>
+)
+
 export const PinIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="18px" height="18px" viewBox="0 0 18 18">
-        <g transform="rotate(45, 9, 9)">
+        <g transform="rotate(0, 9, 9)">
             <line x1="9" y1="16.25" x2="9" y2="12.25" 
                 fill="none" 
-                stroke="#ffffff" 
+                stroke="currentColor" 
                 strokeLinecap="round" 
                 strokeLinejoin="round" 
                 strokeWidth="1.5" 
@@ -147,7 +160,7 @@ export const PinIcon = () => (
             </line>
             <path d="M14.25,12.25c-.089-.699-.318-1.76-.969-2.875-.335-.574-.703-1.028-1.031-1.375V3.75c0-1.105-.895-2-2-2h-2.5c-1.105,0-2,.895-2,2v4.25c-.329,.347-.697,.801-1.031,1.375-.65,1.115-.88,2.176-.969,2.875H14.25Z" 
                 fill="none" 
-                stroke="#ffffff" 
+                stroke="currentColor" 
                 strokeLinecap="round" 
                 strokeLinejoin="round" 
                 strokeWidth="1.5">
@@ -157,7 +170,7 @@ export const PinIcon = () => (
 )
 
 export const SaveIcon = () => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" 
+    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" 
         fill="none" 
         stroke="currentColor" 
         strokeWidth="2" 
@@ -244,5 +257,18 @@ export const EmailIcon = () => (
         className="lucide lucide-mail-icon lucide-mail">
         <path d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"/>
         <rect x="2" y="4" width="20" height="16" rx="2"/>
+    </svg>
+)
+
+export const CheckIcon = () => (
+    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" 
+        fill="none" 
+        stroke="currentColor" 
+        strokeWidth="2" 
+        strokeLinecap="round" 
+        strokeLinejoin="round" 
+        className="lucide lucide-circle-check-icon lucide-circle-check">
+        <circle cx="12" cy="12" r="10"/>
+        <path d="m9 12 2 2 4-4"/>
     </svg>
 )

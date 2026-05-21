@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import notesLogo from "../../../../shared-resources/Notes Logo.svg";
 import api from "../utils/api";
-import { ShowPass, HidePass } from "../../../../shared-resources/icons"; 
+import { ShowPass, HidePass, CheckIcon } from "../../../../shared-resources/icons"; 
 
 export default function SignUp() {
   const navigate = useNavigate();
@@ -11,23 +11,30 @@ export default function SignUp() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
   const set = (key) => (e) => setForm({ ...form, [key]: e.target.value });
-
   // Password validation rules
   const rules = {
     length: form.password.length >= 8,
     number: /\d/.test(form.password),
-    special: /[!@#$%^&*(),.?":{}|<>]/.test(form.password),
+    special: /[^A-Za-z0-9]/.test(form.password),
   };
+
+  const isPasswordValid = rules.length && rules.number && rules.special;
 
   const handleSignUp = async (e) => {
     e.preventDefault();
+
     setError("");
     if (!form.username || !form.email || !form.password || !form.confirmPassword) {
       setError("Please fill in all fields.");
       return;
     }
+
+    if (!isPasswordValid) {
+      setError("Password does not meet the requirements.");
+      return;
+    }
+
     if (form.password !== form.confirmPassword) {
       setError("Passwords do not match.");
       return;
@@ -40,7 +47,7 @@ export default function SignUp() {
         userPassword: form.password
       });
       if (response.data.message) {
-        navigate("/");
+        navigate("/Home");
       }
     } catch (err) {
       setError(err.response?.data?.error || "Something went wrong. Please try again.");
@@ -94,9 +101,9 @@ export default function SignUp() {
             {/* Password rules */}
             {form.password.length > 0 && (
               <div style={s.rulesGrid}>
-                <span style={rules.length ? s.ruleOk : s.ruleFail}>✓ 8+ characters</span>
-                <span style={rules.special ? s.ruleOk : s.ruleFail}>✓ Has special character</span>
-                <span style={rules.number ? s.ruleOk : s.ruleFail}>✓ Contains a number</span>
+                <span style={rules.length ? s.ruleOk : s.ruleFail}><CheckIcon /> 8+ characters</span>
+                <span style={rules.number ? s.ruleOk : s.ruleFail}><CheckIcon /> Contains a number</span>
+                <span style={rules.special ? s.ruleOk : s.ruleFail}><CheckIcon /> Contains a special character</span>
               </div>
             )}
           </div>
@@ -136,9 +143,9 @@ export default function SignUp() {
 const s = {
   wrapper: { display: "flex", height: "100vh", width: "100vw", fontFamily: "'Inter', sans-serif", overflow: "hidden" },
   left: {
-    flex: 1,
+    flex: 2,
     background: "linear-gradient(160deg, #1a1d20 0%, #2a2f34 100%)",
-    display: "flex", flexDirection: "column", justifyContent: "center",
+    display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center",
     padding: "80px", color: "white", position: "relative"
   },
   backLink: {
@@ -146,20 +153,21 @@ const s = {
     color: "rgba(255,255,255,0.65)", textDecoration: "none",
     fontSize: "0.88rem", display: "flex", alignItems: "center", gap: "4px"
   },
-  welcomeTo: { fontSize: "2rem", fontWeight: "700", marginBottom: "10px" },
+  welcomeTo: { fontSize: "2rem", fontWeight: "700", marginBottom: "10px", marginRight: "300px" },
   logo: { 
     width: "100%",        
     maxWidth: "320px",    
-    marginBottom: "1px" 
+    marginBottom: "100px",
+    marginTop: "20px",
   },
   tagline: { 
-    fontSize: "1.75rem",  // Slightly pulled back for better hierarchical balance
-    fontWeight: "600", 
+    fontSize: "2rem",  // Slightly pulled back for better hierarchical balance
+    fontWeight: "700", 
     lineHeight: "1.4", 
     color: "#ffffff", 
   },
   right: {
-    flex: 1, backgroundColor: "#dde1e5",
+    flex: 3, backgroundColor: "#dde1e5",
     display: "flex", justifyContent: "center", alignItems: "center", overflowY: "auto"
   },
   form: { width: "400px", padding: "20px 0" },

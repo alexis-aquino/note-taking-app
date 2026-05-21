@@ -9,6 +9,8 @@ export default function Header({ searchQuery = "", setSearchQuery, user }) {
 
   return (
     <header style={s.header}>
+      <div></div> {/*placeholder to keep search centered*/}
+
       <div style={s.searchWrap}>
         <span style={s.searchIcon}><SearchIcon /></span>
         <input

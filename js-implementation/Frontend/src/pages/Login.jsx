@@ -9,7 +9,6 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -40,7 +39,7 @@ export default function Login() {
       <div style={s.left}>
         <img src={notesLogo} alt="Notes Logo" style={s.logo} />
         <p style={s.tagline}>
-          Your thoughts,<br />organized and<br />accessible<br />everywhere.
+          Your thoughts,<br />organized, and<br />accessible<br />everywhere.
         </p>
       </div>
 
@@ -82,19 +81,6 @@ export default function Login() {
             </div>
           </div>
 
-          <div style={s.row}>
-            <label style={s.checkLabel}>
-              <input
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
-                style={{ marginRight: "8px", cursor: "pointer" }}
-              />
-              Remember for me
-            </label>
-            <Link to="/forgot-password" style={s.forgotLink}>Forgot password?</Link>
-          </div>
-
           <button type="submit" style={{ ...s.btn, opacity: loading ? 0.7 : 1 }} disabled={loading}>
             {loading ? "Signing in…" : "Sign In"}
           </button>
@@ -114,15 +100,17 @@ export default function Login() {
 const s = {
   wrapper: { display: "flex", height: "100vh", width: "100vw", fontFamily: "'Inter', sans-serif", overflow: "hidden" },
   left: {
-    flex: 1,
+    flex: 2,
     background: "linear-gradient(160deg, #1a1d20 0%, #2a2f34 100%)",
     display: "flex", flexDirection: "column", justifyContent: "center",
-    padding: "80px", color: "white"
+    padding: "80px", color: "white",
+    justifyContent: "center", 
+    alignItems: "center"
   },
-  logo: { width: "190px", marginBottom: "50px" },
-  tagline: { fontSize: "2rem", fontWeight: "700", lineHeight: "1.3", opacity: 0.9 },
+  logo: { width: "100%", maxWidth: "320px", marginBottom: "100px"},
+  tagline: { fontSize: "2rem", fontWeight: "700", lineHeight: "1.3"},
   right: {
-    flex: 1, backgroundColor: "#dde1e5",
+    flex: 3, backgroundColor: "#dde1e5",
     display: "flex", justifyContent: "center", alignItems: "center"
   },
   form: { width: "400px" },
@@ -142,14 +130,13 @@ const s = {
     background: "none", border: "none", cursor: "pointer", fontSize: "1rem", padding: 0
   },
   row: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "22px" },
-  checkLabel: { fontSize: "0.85rem", color: "#555", display: "flex", alignItems: "center", cursor: "pointer" },
-  forgotLink: { fontSize: "0.85rem", color: "#111", fontWeight: "600", textDecoration: "none" },
   btn: {
     width: "100%", padding: "13px", backgroundColor: "#111", color: "#fff",
     borderRadius: "8px", border: "none", cursor: "pointer",
-    fontWeight: "700", fontSize: "0.95rem"
+    fontWeight: "700", fontSize: "0.95rem",
+    marginTop: "20px"
   },
-  footer: { marginTop: "18px", textAlign: "center", color: "#666", fontSize: "0.88rem" },
+  footer: { marginTop: "60px", textAlign: "center", color: "#666", fontSize: "0.88rem" },
   link: { color: "#111", fontWeight: "700", textDecoration: "none" },
   error: { marginTop: "12px", color: "#ef4444", fontSize: "0.85rem", textAlign: "center" }
 };

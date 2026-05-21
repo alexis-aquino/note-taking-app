@@ -4,6 +4,7 @@ import api from "../utils/api";
 import { useUser } from "../utils/useUser";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
+import { PinIcon, CategoryIcon } from "../../../../shared-resources/icons";
 
 const PALETTE = ["#38bdf8", "#fbbf24", "#a78bfa", "#34d399", "#f87171", "#fb923c", "#e879f9", "#4ade80", "#f97316"];
 
@@ -241,7 +242,7 @@ export default function Category() {
                     <div>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
                         <h3 style={s.cardTitle}>{note.noteTitle || "Untitled Note"}</h3>
-                        {note.isPinned && <span style={{ color: "#38bdf8", fontSize: "0.8rem" }}>📌</span>}
+                        {note.isPinned && <span style={{ color: "#38bdf8", fontSize: "0.8rem" }}><PinIcon /></span>}
                       </div>
                       <p style={s.cardPreview}>{stripHtml(note.noteBody)}</p>
                     </div>

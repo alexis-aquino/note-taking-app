@@ -1,4 +1,5 @@
 import { useRef, useEffect, useCallback, useState } from "react";
+import { TagIcon, CategoryIcon, PinIcon } from "../../../../shared-resources/icons";
 
 const FONTS = ["Arial", "Georgia", "Courier New", "Verdana", "Trebuchet MS", "Times New Roman"];
 const FONT_SIZES = [8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 32, 36, 48, 72];

@@ -41,31 +41,140 @@ notesRouter.get('/', async (req, res) => {
 
 
 
-// GET search
+// ---------------------------------------------------------------------------
+// GET /search
+//
+// Query params:
+//   q          — search text (title + body)
+//   categoryId — optional single category filter
+//   tagIds     — comma-separated tag IDs; note must have ALL of them (AND logic)
+//
+// Search strategies:
+//   1. LIKE (always runs) — case-insensitive substring match on every character
+//      typed, ordered by updatedAt DESC (most-recently-modified).
+//      This is the baseline required by the spec and works with no index setup.
+//
+//   2. FULLTEXT (upgrade, only when q length >= 3) — MATCH…AGAINST IN BOOLEAN
+//      MODE, ordered by relevance score DESC.  Attempted after LIKE succeeds;
+//      if the FULLTEXT index does not exist the LIKE results are returned instead.
+//      Add the index with:
+//        ALTER TABLE notes ADD FULLTEXT INDEX ft_notes (noteTitle, noteBody);
+//
+// Both strategies support categoryId and tagIds filters independently or
+// combined with the text search.
+//
+// Security: every query is scoped to n.userId = ? — a user can never see
+// another user's notes regardless of the search term.
+// ---------------------------------------------------------------------------
 notesRouter.get('/search', async (req, res) => {
     const currentUserId = req.session.currentUserId;
-    const searchQuery = req.query.q;
-    if (!searchQuery || searchQuery.trim() === '') {
-        return res.status(400).json({ error: 'Search query cannot be empty.' });
+    const { q: rawQuery, categoryId, tagIds: rawTagIds } = req.query;
+    const searchQuery = (rawQuery || '').trim();
+
+    // Parse comma-separated tagIds into a clean array of integers
+    const tagIdList = rawTagIds
+        ? rawTagIds.split(',').map(id => parseInt(id, 10)).filter(id => !isNaN(id))
+        : [];
+
+    const hasText     = searchQuery.length > 0;
+    const hasTags     = tagIdList.length > 0;
+    const hasCategory = !!categoryId;
+
+    if (!hasText && !hasTags && !hasCategory) {
+        return res.status(400).json({ error: 'Provide a search query, tag, or category filter.' });
     }
+
+    // ── Clause builders ───────────────────────────────────────────────────────
+    // Multi-tag AND: one INNER JOIN per tag with a numbered alias.
+    // A note only appears if it has every selected tag.
+    const buildTagJoins = () => tagIdList
+        .map((_, i) => `INNER JOIN note_tags nt${i} ON nt${i}.noteId = n.noteId AND nt${i}.tagId = ?`)
+        .join('\n             ');
+
+    const catClause = hasCategory ? 'AND n.categoryId = ?' : '';
+
+    // ── STRATEGY 1: LIKE — runs on every keystroke, no index required ─────────
+    // This is the primary path. Single characters, partial words — all work.
     try {
-        const [searchRows] = await dbPool.query(
+        // param order must match the SQL placeholder order:
+        // 1. one param per tag join (tagIdList) — these are in the JOIN ON clauses
+        // 2. userId — in the WHERE clause
+        // 3. LIKE params (x2) — if text search is active
+        // 4. categoryId — if category filter is active
+        const params = [...tagIdList, currentUserId];
+
+        let textClause = '';
+        if (hasText) {
+            textClause = 'AND (n.noteTitle LIKE ? OR n.noteBody LIKE ?)';
+            const likeParam = `%${searchQuery}%`;
+            params.push(likeParam, likeParam);
+        }
+        if (hasCategory) params.push(categoryId);
+
+        const [likeRows] = await dbPool.query(
             `SELECT n.noteId, n.noteTitle, n.noteBody, n.isPinned,
-                    n.categoryId, c.categoryName,
-                    n.createdAt, n.updatedAt,
-                    MATCH(n.noteTitle, n.noteBody) AGAINST(? IN BOOLEAN MODE) AS relevanceScore
+                    n.categoryId, c.categoryName, n.createdAt, n.updatedAt
              FROM notes n
              LEFT JOIN categories c ON n.categoryId = c.categoryId
+             ${buildTagJoins()}
              WHERE n.userId = ?
-             AND MATCH(n.noteTitle, n.noteBody) AGAINST(? IN BOOLEAN MODE)
-             ORDER BY relevanceScore DESC`,
-            [searchQuery, currentUserId, searchQuery]
+               ${textClause}
+               ${catClause}
+             ORDER BY n.updatedAt DESC`,
+            params
         );
-        const result = searchRows.map(row => ({
-            ...row, noteBodyHtml: renderMarkdown(row.noteBody)
-        }));
-        return res.status(200).json(result);
-    } catch (err) {
+
+        // ── STRATEGY 2: FULLTEXT upgrade (only when query is long enough) ────
+        // MySQL FULLTEXT requires at least 3 characters by default.
+        // If the index exists and the query qualifies, re-run for relevance order.
+        if (hasText && searchQuery.length >= 3) {
+            try {
+                // param order:
+                // 1. first MATCH arg
+                // 2. one param per tag join (tagIdList)
+                // 3. userId
+                // 4. second MATCH arg (for WHERE clause)
+                // 5. categoryId (if present)
+                const ftParams = [searchQuery, ...tagIdList, currentUserId, searchQuery];
+                if (hasCategory) ftParams.push(categoryId);
+
+                const [ftRows] = await dbPool.query(
+                    `SELECT n.noteId, n.noteTitle, n.noteBody, n.isPinned,
+                            n.categoryId, c.categoryName, n.createdAt, n.updatedAt,
+                            MATCH(n.noteTitle, n.noteBody) AGAINST(? IN BOOLEAN MODE) AS relevanceScore
+                     FROM notes n
+                     LEFT JOIN categories c ON n.categoryId = c.categoryId
+                     ${buildTagJoins()}
+                     WHERE n.userId = ?
+                       AND MATCH(n.noteTitle, n.noteBody) AGAINST(? IN BOOLEAN MODE)
+                       ${catClause}
+                     ORDER BY relevanceScore DESC`,
+                    ftParams
+                );
+
+                // FULLTEXT succeeded — return relevance-ordered results
+                return res.status(200).json(
+                    ftRows.map(row => ({ ...row, noteBodyHtml: renderMarkdown(row.noteBody) }))
+                );
+            } catch (ftErr) {
+                // Index absent or FULLTEXT error — fall through to LIKE results below
+                const isMissingIndex =
+                    ftErr.code === 'ER_FT_MATCHING_KEY_NOT_FOUND' ||
+                    (ftErr.message || '').toLowerCase().includes('fulltext');
+                if (!isMissingIndex) {
+                    console.error('[search] FULLTEXT error:', ftErr.message);
+                }
+                // Return the already-computed LIKE results
+            }
+        }
+
+        // Return LIKE results (either FULLTEXT not applicable or index absent)
+        return res.status(200).json(
+            likeRows.map(row => ({ ...row, noteBodyHtml: renderMarkdown(row.noteBody) }))
+        );
+
+    } catch (likeErr) {
+        console.error('[search] LIKE query failed:', likeErr.message);
         return res.status(500).json({ error: 'Search failed.' });
     }
 });

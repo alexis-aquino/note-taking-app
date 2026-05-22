@@ -229,7 +229,7 @@ export default function Category() {
               <p style={s.empty}>Loading…</p>
             ) : catNotes.length === 0 ? (
               <div style={s.emptyState}>
-                <div style={s.emptyIcon}>📝</div>
+                <div style={s.emptyIcon}><CategoryIcon /></div>
                 <p style={s.emptyTitle}>No notes in this category</p>
                 <p style={s.emptySub}>Assign notes to "{selectedCat.categoryName}" from the editor.</p>
               </div>
@@ -239,7 +239,7 @@ export default function Category() {
                   <div
                     key={note.noteId}
                     style={s.card}
-                    onClick={() => navigate("/Home")}
+                    onClick={() => navigate("/Home", { state: { noteId: note.noteId } })}
                   >
                     <div>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>

@@ -5,7 +5,7 @@ import { useUser } from "../utils/useUser";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 import RichTextEditor from "../components/RichTextEditor";
-import { TrashIcon, PinIcon, SaveIcon} from "../../../../shared-resources/icons";
+import { TrashIcon, PinIcon, SaveIcon, NotesIcon} from "../../../../shared-resources/icons";
 
 
 export default function Home() {
@@ -319,7 +319,17 @@ export default function Home() {
     <div style={s.page}>
       <Sidebar onNewNote={handleNewNote} counts={counts} />
       <div style={s.workspace}>
-        <Header user={user} searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+        <Header
+          user={user}
+          categories={categories}
+          allTags={allTags}
+          onSelectNote={(note) => {
+            // Find the full note from local state (has all fields); fall back to the
+            // search result object if it's not in the list yet (edge case).
+            const full = notes.find(n => n.noteId === note.noteId) ?? note;
+            setActiveNote(full);
+          }}
+        />
 
         {error && <div style={s.errorBanner}>{error}</div>}
 
@@ -448,7 +458,7 @@ export default function Home() {
             {/* Header */}
             <div style={s.modalHeader}>
               <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                <span>📄</span>
+                <span><NotesIcon /></span>
                 <span style={s.modalLabel}>NEW NOTE</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>

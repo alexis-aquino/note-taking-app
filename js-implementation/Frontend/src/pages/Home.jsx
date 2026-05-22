@@ -25,6 +25,7 @@ export default function Home() {
   const [newCatName, setNewCatName] = useState("");
   const [draftTagInput, setDraftTagInput] = useState("");
   const [counts, setCounts] = useState({ notes: 0, trash: 0 });
+  const [tagMatchedIds, setTagMatchedIds] = useState(new Set());
 
   useEffect(() => {
     fetchNotes();
@@ -70,6 +71,31 @@ export default function Home() {
       // non-critical
     }
   };
+
+  // When searchQuery changes, also query the backend for notes matching by tag/category name
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      // Reset to full notes list when search is cleared
+      setTagMatchedIds(new Set());
+      fetchNotes();
+      return;
+    }
+    const q = searchQuery.toLowerCase();
+
+    // Check if query matches any known tag name
+    const matchedTag = allTags.find(t => t.tagName.toLowerCase().includes(q));
+
+    if (!matchedTag) {
+      setTagMatchedIds(new Set());
+      return;
+    }
+
+    api.get(`/api/notes/search?tagId=${matchedTag.tagId}`)
+      .then(res => {
+        setTagMatchedIds(new Set(res.data.map(n => n.noteId)));
+      })
+      .catch(() => setTagMatchedIds(new Set()));
+  }, [searchQuery, allTags]);
 
   // Load tags for the active note whenever it changes
   useEffect(() => {
@@ -268,10 +294,18 @@ export default function Home() {
     }
   };
 
-  const filteredNotes = notes.filter(note =>
-    note.noteTitle?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    note.noteBody?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Client-side filter: match title, body, category name, or any assigned tag name
+  const filteredNotes = notes.filter(note => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    if (note.noteTitle?.toLowerCase().includes(q)) return true;
+    if (note.noteBody?.toLowerCase().includes(q)) return true;
+    // Match category name (including "Uncategorized")
+    if (note.categoryName?.toLowerCase().includes(q)) return true;
+    // Match by tag (resolved via backend)
+    if (tagMatchedIds.has(note.noteId)) return true;
+    return false;
+  });
 
   if (loading) {
     return (
@@ -311,9 +345,14 @@ export default function Home() {
                       {note.isPinned && <span style={{ color: "#d43434", fontSize: "0.85rem", transform: "rotate(45deg)"}}><PinIcon /></span>}
                     </div>
                     <p style={s.cardSnippet}>{note.noteBody ? note.noteBody.replace(/<[^>]*>/g, "").substring(0, 65) + "…" : "Empty note…"}</p>
-                    <span style={s.cardTime}>
-                      {note.updatedAt ? new Date(note.updatedAt).toLocaleDateString() : ""}
-                    </span>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={s.cardTime}>
+                        {note.updatedAt ? new Date(note.updatedAt).toLocaleDateString() : ""}
+                      </span>
+                      <span style={{ ...s.cardTime, color: note.categoryName === "Uncategorized" ? "#4b5563" : "#38bdf8", fontSize: "0.72rem" }}>
+                        {note.categoryName || "Uncategorized"}
+                      </span>
+                    </div>
                   </div>
                 ))
               )}

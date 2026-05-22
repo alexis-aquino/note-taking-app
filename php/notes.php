@@ -116,7 +116,7 @@ try {
         $body = json_decode(file_get_contents('php://input'), true);
         $noteTitle = trim($body['noteTitle'] ?? '');
         $noteBody = trim($body['noteBody'] ?? '');
-        $categoryId = !empty($body['categoryId']) ? (int)$body['categoryId'] : 1;
+        $categoryId = !empty($body['categoryId']) ? (int)$body['categoryId'] : null;
         $isPinned = !empty($body['isPinned']) ? 1 : 0;
     
     if ($noteTitle === '' || $noteBody === '') {
@@ -141,7 +141,7 @@ try {
         $body = json_decode(file_get_contents('php://input'), true);
         $noteTitle = trim($body['noteTitle'] ?? '');
         $noteBody = trim($body['noteBody'] ?? '');
-        $categoryId = !empty($body['categoryId']) ? (int)$body['categoryId'] : 1;
+        $categoryId = !empty($body['categoryId']) ? (int)$body['categoryId'] : null;
         $isPinned = !empty($body['isPinned']) ? 1 : 0;
 
     if ($noteTitle === '' || $noteBody === '') {

@@ -141,7 +141,7 @@ export default function SignUp() {
 }
 
 const s = {
-  wrapper: { display: "flex", height: "100vh", width: "100vw", fontFamily: "'Inter', sans-serif", overflow: "hidden" },
+  wrapper: { display: "flex", height: "100%", width: "100%", fontFamily: "'Inter', sans-serif", overflow: "hidden" },
   left: {
     flex: 2,
     background: "linear-gradient(160deg, #1a1d20 0%, #2a2f34 100%)",

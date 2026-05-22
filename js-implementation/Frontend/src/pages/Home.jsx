@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import api from "../utils/api";
 import { useUser } from "../utils/useUser";
 import Sidebar from "../components/Sidebar";
@@ -9,6 +9,7 @@ import { TrashIcon, PinIcon, SaveIcon} from "../../../../shared-resources/icons"
 
 export default function Home() {
   const navigate = useNavigate();
+  const location = useLocation();
   const user = useUser();
   const [notes, setNotes] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -532,8 +533,8 @@ export default function Home() {
 }
 
 const s = {
-  page: { display: "flex", height: "100vh", width: "100vw", backgroundColor: "#131517", overflow: "hidden", fontFamily: "'Inter', sans-serif" },
-  workspace: { display: "flex", flexDirection: "column", flex: 1, marginLeft: "250px", height: "100vh" },
+  page: { display: "flex", height: "100%", width: "100%", backgroundColor: "#131517", overflow: "hidden", fontFamily: "'Inter', sans-serif" },
+  workspace: { display: "flex", flexDirection: "column", flex: 1, marginLeft: "250px", height:"100vh", maxHeight: "100vh", overflow: "hidden" },
   errorBanner: { backgroundColor: "#7f1d1d", color: "#fca5a5", padding: "8px 20px", fontSize: "0.85rem" },
   listPane: { width: "300px", borderRight: "1px solid #2d3135", backgroundColor: "#1a1d20", display: "flex", flexDirection: "column" },
   paneHeader: { padding: "18px 20px", borderBottom: "1px solid #2d3135", display: "flex", justifyContent: "space-between", alignItems: "center" },

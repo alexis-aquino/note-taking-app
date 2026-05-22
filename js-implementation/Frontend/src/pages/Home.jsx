@@ -7,6 +7,7 @@ import Header from "../components/Header";
 import RichTextEditor from "../components/RichTextEditor";
 import { TrashIcon, PinIcon, SaveIcon} from "../../../../shared-resources/icons";
 
+
 export default function Home() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -24,7 +25,7 @@ export default function Home() {
   const [showCreateCat, setShowCreateCat] = useState(false);
   const [newCatName, setNewCatName] = useState("");
   const [draftTagInput, setDraftTagInput] = useState("");
-  const [counts, setCounts] = useState({ notes: 0, trash: 0 });
+  const [counts, setCounts] = useState({ notes: 0 });
   const [tagMatchedIds, setTagMatchedIds] = useState(new Set());
 
   useEffect(() => {
@@ -32,11 +33,15 @@ export default function Home() {
     fetchCategories();
     fetchAllTags();
     fetchCounts();
+    if (location.state?.openNewNote) {
+    setShowNewNoteModal(true);
+    window.history.replaceState({}, "");
+  }
   }, []);
 
   const fetchNotes = async () => {
     try {
-      setLoading(true);
+      setLoading(false);
       const res = await api.get("/api/notes/");
       setNotes(res.data);
       // Keep active note in sync with fresh data; select first if none active
@@ -106,17 +111,6 @@ export default function Home() {
   }, [activeNote?.noteId]);
 
   const fetchCounts = async () => {
-    try {
-      const [trashRes] = await Promise.all([
-        api.get("/api/notes/trash"),
-      ]);
-      setCounts(prev => ({
-        ...prev,
-        trash: trashRes.data.length,
-      }));
-    } catch {
-      // non-critical
-    }
   };
 
   // Update counts.notes whenever notes changes
@@ -150,16 +144,16 @@ export default function Home() {
     }
   };
 
-  const handleTrash = async () => {
-    if (!activeNote?.noteId) return;
-    try {
-      await api.put(`/api/notes/${activeNote.noteId}`, { isTrash: true });
-      setNotes(prev => prev.filter(n => n.noteId !== activeNote.noteId));
-      setActiveNote(null);
-      fetchCounts();
-    } catch {
-      setError("Failed to move note to trash.");
-    }
+  const handleDelete = async () => {
+  if (!activeNote?.noteId) return;
+  if (!window.confirm("Permanently delete this note? This cannot be undone.")) return;
+  try {
+    await api.delete(`/api/notes/${activeNote.noteId}`);
+    setNotes(prev => prev.filter(n => n.noteId !== activeNote.noteId));
+    setActiveNote(null);
+  } catch {
+    setError("Failed to delete note.");
+  }
   };
 
   const handleTogglePinned = async () => {
@@ -168,7 +162,10 @@ export default function Home() {
     try {
       await api.put(`/api/notes/${activeNote.noteId}`, { isPinned: newVal });
       setActiveNote(prev => ({ ...prev, isPinned: newVal }));
-      setNotes(prev => prev.map(n => n.noteId === activeNote.noteId ? { ...n, isPinned: newVal } : n));
+      setNotes(prev => {
+      const updated = prev.map(n => n.noteId === activeNote.noteId ? { ...n, isPinned: newVal } : n);
+      return [...updated].sort((a, b) => b.isPinned - a.isPinned);
+    });
     } catch {
       setError("Failed to update note.");
     }
@@ -309,8 +306,11 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div style={{ ...s.page, justifyContent: "center", alignItems: "center" }}>
-        <p style={{ color: "#9ca3af" }}>Loading notes…</p>
+      <div style={s.page}>
+        <Sidebar onNewNote={handleNewNote} counts={counts} />
+        <div style={{ ...s.workspace, justifyContent: "center", alignItems: "center" }}>
+          <p style={{ color: "#00348dff" }}>Loading notes…</p>
+        </div>
       </div>
     );
   }
@@ -375,8 +375,8 @@ export default function Home() {
                   </button>
                   <button style={s.toolBtn} onClick={handleSaveNote}><SaveIcon /></button>
                 </div>
-                <button style={{ ...s.toolBtn, color: "#f87171" }} onClick={handleTrash}>
-                  <TrashIcon /> Move to Trash
+                <button style={{ ...s.toolBtn, color: "#f87171" }} onClick={handleDelete}>
+                  <TrashIcon />
                 </button>
               </div>
 
@@ -578,7 +578,7 @@ const s = {
   listPane: { width: "300px", borderRight: "1px solid #2d3135", backgroundColor: "#1a1d20", display: "flex", flexDirection: "column" },
   paneHeader: { padding: "18px 20px", borderBottom: "1px solid #2d3135", display: "flex", justifyContent: "space-between", alignItems: "center" },
   paneTitle: { fontWeight: "700", color: "#fff", fontSize: "0.95rem" },
-  countBadge: { backgroundColor: "#2d3135", color: "#38bdf8", padding: "2px 8px", borderRadius: "12px", fontSize: "0.75rem", fontWeight: "700" },
+  countBadge: { backgroundColor: "#2d3135", color: "#ffffff", padding: "2px 8px", borderRadius: "12px", fontSize: "0.75rem", fontWeight: "700" },
   listScroll: { flex: 1, overflowY: "auto", padding: "10px" },
   empty: { color: "#6b7280", textAlign: "center", padding: "30px", fontSize: "0.88rem" },
   card: { padding: "14px", borderRadius: "8px", cursor: "pointer", marginBottom: "6px" },

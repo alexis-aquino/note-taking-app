@@ -13,7 +13,7 @@ categoriesRouter.get('/', async (req, res) => {
             `SELECT c.categoryId, c.categoryName,
                     COUNT(n.noteId) AS noteCount
              FROM categories c
-             LEFT JOIN notes n ON n.categoryId = c.categoryId AND n.isTrash = 0
+             LEFT JOIN notes n ON n.categoryId = c.categoryId
              WHERE c.userId = ?
              GROUP BY c.categoryId
              ORDER BY c.categoryName ASC`,
@@ -33,7 +33,7 @@ categoriesRouter.get('/:categoryId/notes', async (req, res) => {
         const [rows] = await dbPool.query(
             `SELECT noteId, noteTitle, noteBody, isPinned, updatedAt
              FROM notes
-             WHERE userId = ? AND categoryId = ? AND isTrash = 0
+             WHERE userId = ? AND categoryId = ?
              ORDER BY isPinned DESC, updatedAt DESC`,
             [currentUserId, categoryId]
         );

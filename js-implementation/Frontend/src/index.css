@@ -1,0 +1,53 @@
+/* 1. RESET BROWSER DEFAULTS & LOCK LAYOUT DIMENSIONS */
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  /* 🔑 Prevents the bright browser backdrop from bleeding into your dark dashboard */
+  background-color: #131517; 
+  /* 🔑 Stops the entire browser window from scrolling accidentally */
+  overflow: hidden; 
+}
+
+/* 2. GLOBAL TYPOGRAPHY BOILERPLATE */
+body {
+  font-family: 'Inter', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: #ffffff;
+}
+
+/* 3. UNIVERSAL CUSTOM DARK SCROLLBAR PACK */
+/* Targets any container inside your app that has scrolling enabled */
+div[style*="overflow-y: auto"],
+    .custom-scrollbar {
+    scrollbar-width: thin !important; /* Thin styling bar profile for Firefox */
+    scrollbar-color: #3e444a #1a1d20 !important; /* Thumb and Track colors for Firefox */
+}
+
+/* Webkit browser engines styling rule layout (Chrome, Safari, Edge) */
+div[style*="overflow-y: auto"]::-webkit-scrollbar,
+    .custom-scrollbar::-webkit-scrollbar {
+    width: 6px !important;  /* Slim vertical scrollbar thickness */
+    height: 6px !important; /* Slim horizontal scrollbar thickness */
+}
+
+/* The structural scrolling gutter track background */
+div[style*="overflow-y: auto"]::-webkit-scrollbar-track,
+    .custom-scrollbar::-webkit-scrollbar-track {
+    background: #1a1d20 !important; /* Matches your listPane panel background exactly */
+}
+
+/* The draggable scrollbar handle thumb design */
+div[style*="overflow-y: auto"]::-webkit-scrollbar-thumb,
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #3e444a !important; /* Subdued low-contrast gray indicator */
+    border-radius: 10px !important;  /* Smooth pill-shaped capsule edges */
+}
+
+/* Hover dynamic highlight state when interacting with the thumb */
+div[style*="overflow-y: auto"]::-webkit-scrollbar-thumb:hover,
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #4f565e !important; /* Slightly brightens up to register focus */
+}

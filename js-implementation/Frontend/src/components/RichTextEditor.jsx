@@ -17,6 +17,7 @@ export default function RichTextEditor({
   const [font, setFont]     = useState("Arial");
   const [fontSize, setFontSize] = useState(11);
   const [fmt, setFmt]       = useState({});
+  const pendingFmt = useRef({ bold: false, italic: false, underline: false });
 
   // ── Sync value → DOM (skip while the user is typing) ──────────────────
   useEffect(() => {
@@ -140,10 +141,19 @@ export default function RichTextEditor({
       document.execCommand("insertOrderedList", false, null);
     }
     document.execCommand("removeFormat", false, null);
-    document.execCommand("justifyLeft", false, null);
+    // removeFormat doesn't strip backColor in all browsers — manually clear it
     const sel = window.getSelection();
-    if (sel?.rangeCount > 0) {
-      try { savedRange.current = sel.getRangeAt(0).cloneRange(); } catch { /* ignore */ }
+    if (sel && sel.rangeCount > 0) {
+      const range = sel.getRangeAt(0);
+      // Find all elements inside the editor that have background-color and are within selection
+      editorRef.current?.querySelectorAll('[style]').forEach(el => {
+        if (range.intersectsNode(el)) {
+          el.style.backgroundColor = "";
+          el.style.color = "";
+          if (!el.getAttribute("style")) el.removeAttribute("style");
+        }
+      });
+      try { savedRange.current = range.cloneRange(); } catch { /* ignore */ }
     }
     skipSync.current = true;
     onChange(editorRef.current?.innerHTML || "");
@@ -151,22 +161,108 @@ export default function RichTextEditor({
   };
 
 
+  // ── Shared collapsed-cursor format toggle ─────────────────────────────
+  // When cursor is collapsed inside formatted text, deactivating one format
+  // must preserve the others. We insert a zero-width space wrapped in the
+  // formats we want to KEEP, then place the cursor inside it.
+  const toggleCollapsedFmt = (fmtKey) => {
+    const sel = window.getSelection();
+    if (!sel || !sel.isCollapsed) return false;
 
+    const isBold      = document.queryCommandState("bold");
+    const isItalic    = document.queryCommandState("italic");
+    const isUnderline = document.queryCommandState("underline");
 
-  // ── Link & image ───────────────────────────────────────────────────────
-  const insertLink = () => {
-    saveRange();
-    const url = window.prompt("Enter URL:", "https://");
-    if (url && url !== "https://") run("createLink", url);
+    const currentState = { bold: isBold, italic: isItalic, underline: isUnderline };
+
+    if (currentState[fmtKey]) {
+      // Deactivating — build wrapper with remaining formats only
+      const keep = {
+        bold:      isBold      && fmtKey !== "bold",
+        italic:    isItalic    && fmtKey !== "italic",
+        underline: isUnderline && fmtKey !== "underline",
+      };
+
+      const textNode = document.createTextNode("\u200B");
+      let wrapper = textNode;
+      let outermost = null;
+
+      // Wrap in reverse order so outermost is first applied
+      if (keep.underline) {
+        const u = document.createElement("u");
+        u.appendChild(wrapper);
+        wrapper = u;
+      }
+      if (keep.italic) {
+        const i = document.createElement("i");
+        i.appendChild(wrapper);
+        wrapper = i;
+      }
+      if (keep.bold) {
+        const b = document.createElement("b");
+        b.appendChild(wrapper);
+        wrapper = b;
+      }
+      outermost = wrapper;
+
+      // Find the outermost format ancestor to insert after
+      const range = sel.getRangeAt(0);
+      let node = range.startContainer.nodeType === 3
+        ? range.startContainer.parentElement
+        : range.startContainer;
+      let insertAfter = null;
+      while (node && node !== editorRef.current) {
+        if (["B","STRONG","I","EM","U"].includes(node.nodeName)) insertAfter = node;
+        node = node.parentElement;
+      }
+
+      if (insertAfter) {
+        insertAfter.parentNode.insertBefore(outermost, insertAfter.nextSibling);
+      } else {
+        // Fallback: insert at cursor position
+        range.insertNode(outermost);
+      }
+
+      // Place cursor after the zero-width space inside the wrapper
+      const newRange = document.createRange();
+      newRange.setStart(textNode, 1);
+      newRange.collapse(true);
+      sel.removeAllRanges();
+      sel.addRange(newRange);
+      savedRange.current = newRange.cloneRange();
+
+      pendingFmt.current[fmtKey] = false;
+      setFmt(prev => ({ ...prev, [fmtKey]: false }));
+    } else {
+  // Activating — insert a wrapper with this format added to current ones
+  const range = sel.getRangeAt(0);
+  const textNode = document.createTextNode("\u200B");
+  let wrapper = textNode;
+
+  const nowUnderline = isUnderline || fmtKey === "underline";
+  const nowItalic    = isItalic    || fmtKey === "italic";
+  const nowBold      = isBold      || fmtKey === "bold";
+
+  if (nowUnderline) { const u = document.createElement("u"); u.appendChild(wrapper); wrapper = u; }
+  if (nowItalic)    { const i = document.createElement("i"); i.appendChild(wrapper); wrapper = i; }
+  if (nowBold)      { const b = document.createElement("b"); b.appendChild(wrapper); wrapper = b; }
+
+  range.insertNode(wrapper);
+
+  const newRange = document.createRange();
+  newRange.setStart(textNode, 1);
+  newRange.collapse(true);
+  sel.removeAllRanges();
+  sel.addRange(newRange);
+  savedRange.current = newRange.cloneRange();
+
+  pendingFmt.current[fmtKey] = true;
+  setFmt(prev => ({ ...prev, [fmtKey]: true }));
+    }
+
+    editorRef.current?.focus();
+    return true;
   };
-
-  const insertImage = () => {
-    saveRange();
-    const url = window.prompt("Enter image URL:", "https://");
-    if (url && url !== "https://") run("insertImage", url);
-  };
-
-  // ── Toolbar button style helper ────────────────────────────────────────
   const btn = (active) => ({
     background:     active ? "#38bdf8" : "none",
     border:         "none",
@@ -222,18 +318,50 @@ export default function RichTextEditor({
         {sep}
 
         {/* Bold / Italic / Underline */}
-        <button style={btn(fmt.bold)} title="Bold"
-          onMouseDown={(e) => { e.preventDefault(); run("bold"); }}>
+        <button style={btn(fmt.bold || pendingFmt.current.bold)} title="Bold"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            saveRange();
+            const sel = window.getSelection();
+            if (sel && sel.isCollapsed) {
+              toggleCollapsedFmt("bold");
+            } else {
+              run("bold");
+            }
+          }}>
           <b>B</b>
         </button>
-        <button style={{ ...btn(fmt.italic), fontStyle: "italic" }} title="Italic"
-          onMouseDown={(e) => { e.preventDefault(); run("italic"); }}>
+ {sep}
+        <button style={btn(fmt.italic || pendingFmt.current.italic)} title="Italic"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            saveRange();
+            const sel = window.getSelection();
+            if (sel && sel.isCollapsed) {
+              toggleCollapsedFmt("italic");
+            } else {
+              run("italic");
+            }
+          }}>
           <i>I</i>
         </button>
-        <button style={{ ...btn(fmt.underline), textDecoration: "underline" }} title="Underline"
-          onMouseDown={(e) => { e.preventDefault(); run("underline"); }}>
+
+{sep}
+
+<button style={btn(fmt.underline || pendingFmt.current.underline)} title="Underline"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            saveRange();
+            const sel = window.getSelection();
+            if (sel && sel.isCollapsed) {
+              toggleCollapsedFmt("underline");
+            } else {
+              run("underline");
+            }
+          }}>
           <u>U</u>
         </button>
+
 
         {sep}
 
@@ -338,22 +466,10 @@ export default function RichTextEditor({
         </button>
 
         {sep}
-
-        {/* Image & Link */}
-        <button style={btn(false)} title="Insert image"
-          onMouseDown={(e) => { e.preventDefault(); insertImage(); }}>
-          🖼
-        </button>
-        <button style={btn(false)} title="Insert link"
-          onMouseDown={(e) => { e.preventDefault(); insertLink(); }}>
-          🔗
-        </button>
-
-        {sep}
-
+        
         {/* Clear formatting */}
         <button style={{ ...btn(false), color: "#f87171" }} title="Clear formatting"
-          onMouseDown={(e) => { e.preventDefault(); clearFormat(); }}>
+          onMouseDown={(e) => { e.preventDefault(); saveRange(); clearFormat(); }}>
           Tx
         </button>
 
@@ -415,6 +531,7 @@ const tb = {
     borderBottom:    "1px solid #2d3135",
     flexWrap:        "wrap",
     flexShrink:      0,
+    cursor:          "default",
   },
   select: {
     backgroundColor: "#2d3135",

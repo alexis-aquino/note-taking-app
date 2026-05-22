@@ -42,7 +42,7 @@ export default function Sidebar({ onNewNote, counts = {} }) {
           }
         }}
       >
-        New Note +
+        New Note
       </button>
 
       <nav style={s.nav}>

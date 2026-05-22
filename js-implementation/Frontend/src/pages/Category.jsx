@@ -4,7 +4,7 @@ import api from "../utils/api";
 import { useUser } from "../utils/useUser";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
-import { PinIcon, CategoryIcon } from "../../../../shared-resources/icons";
+import { PinIcon, CategoryIcon, PencilIcon, TrashIcon } from "../../../../shared-resources/icons";
 
 const PALETTE = ["#38bdf8", "#fbbf24", "#a78bfa", "#34d399", "#f87171", "#fb923c", "#e879f9", "#4ade80", "#f97316"];
 
@@ -119,11 +119,14 @@ export default function Category() {
               <button style={s.backBtn} onClick={() => { setSelectedCat(null); setCatNotes([]); }}>‹ Back</button>
             ) : null}
             <h2 style={s.title}>
-              📁 {selectedCat ? selectedCat.categoryName : "Categories"}
+              <span style={{ display: "inline-flex", transform: "scale(1.5)", transformOrigin: "left center", marginRight: "15px" }}>
+                <CategoryIcon />
+              </span>
+              {selectedCat ? selectedCat.categoryName : "Categories"}
             </h2>
             {!selectedCat && (
               <button style={s.addCatBtn} onClick={() => { setShowAddForm(v => !v); setNewCatName(""); }}>
-                + New Category
+                New Category
               </button>
             )}
           </div>
@@ -200,19 +203,19 @@ export default function Category() {
                       {/* Actions */}
                       <div style={s.catActions}>
                         <button style={{ ...s.openBtn, color }} onClick={() => handleSelectCategory(cat)}>
-                          Open →
+                          Open
                         </button>
                         <div style={{ display: "flex", gap: "4px" }}>
                           <button
                             style={s.iconBtn}
                             title="Rename"
                             onClick={(e) => handleStartRename(e, cat)}
-                          >✏️</button>
+                          ><PencilIcon /></button>
                           <button
                             style={{ ...s.iconBtn, color: "#f87171" }}
                             title="Delete"
                             onClick={(e) => handleDeleteCategory(e, cat.categoryId)}
-                          >🗑</button>
+                          ><TrashIcon /></button>
                         </div>
                       </div>
                     </div>
@@ -271,7 +274,7 @@ const s = {
   titleRow: { display: "flex", alignItems: "center", gap: "12px", marginBottom: "6px" },
   backBtn: { background: "none", border: "none", color: "#38bdf8", cursor: "pointer", fontSize: "1.1rem", padding: 0, flexShrink: 0 },
   title: { fontSize: "1.8rem", fontWeight: "700", color: "#fff", margin: 0, flex: 1 },
-  addCatBtn: { padding: "8px 16px", backgroundColor: "#38bdf8", color: "#0f172a", border: "none", borderRadius: "8px", fontWeight: "700", fontSize: "0.85rem", cursor: "pointer", flexShrink: 0 },
+  addCatBtn: { padding: "8px 16px", backgroundColor: "#38bdf8", color: "#ffffff", border: "none", borderRadius: "8px", fontWeight: "700", fontSize: "0.85rem", cursor: "pointer", flexShrink: 0 },
   sub: { color: "#9ca3af", fontSize: "0.9rem", marginBottom: "24px" },
   errorMsg: { color: "#f87171", marginBottom: "16px", fontSize: "0.88rem" },
   addForm: { display: "flex", gap: "8px", marginBottom: "24px", maxWidth: "480px" },

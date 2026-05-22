@@ -26,6 +26,7 @@ export default function Home() {
   const [newCatName, setNewCatName] = useState("");
   const [draftTagInput, setDraftTagInput] = useState("");
   const [counts, setCounts] = useState({ notes: 0 });
+  const [tagMatchedIds, setTagMatchedIds] = useState(new Set());
 
   useEffect(() => {
     fetchNotes();
@@ -75,6 +76,31 @@ export default function Home() {
       // non-critical
     }
   };
+
+  // When searchQuery changes, also query the backend for notes matching by tag/category name
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      // Reset to full notes list when search is cleared
+      setTagMatchedIds(new Set());
+      fetchNotes();
+      return;
+    }
+    const q = searchQuery.toLowerCase();
+
+    // Check if query matches any known tag name
+    const matchedTag = allTags.find(t => t.tagName.toLowerCase().includes(q));
+
+    if (!matchedTag) {
+      setTagMatchedIds(new Set());
+      return;
+    }
+
+    api.get(`/api/notes/search?tagId=${matchedTag.tagId}`)
+      .then(res => {
+        setTagMatchedIds(new Set(res.data.map(n => n.noteId)));
+      })
+      .catch(() => setTagMatchedIds(new Set()));
+  }, [searchQuery, allTags]);
 
   // Load tags for the active note whenever it changes
   useEffect(() => {
@@ -265,10 +291,18 @@ export default function Home() {
     }
   };
 
-  const filteredNotes = notes.filter(note =>
-    note.noteTitle?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    note.noteBody?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Client-side filter: match title, body, category name, or any assigned tag name
+  const filteredNotes = notes.filter(note => {
+    if (!searchQuery) return true;
+    const q = searchQuery.toLowerCase();
+    if (note.noteTitle?.toLowerCase().includes(q)) return true;
+    if (note.noteBody?.toLowerCase().includes(q)) return true;
+    // Match category name (including "Uncategorized")
+    if (note.categoryName?.toLowerCase().includes(q)) return true;
+    // Match by tag (resolved via backend)
+    if (tagMatchedIds.has(note.noteId)) return true;
+    return false;
+  });
 
   if (loading) {
     return (
@@ -311,9 +345,14 @@ export default function Home() {
                       {note.isPinned && <span style={{ color: "#d43434", fontSize: "0.85rem", transform: "rotate(45deg)"}}><PinIcon /></span>}
                     </div>
                     <p style={s.cardSnippet}>{note.noteBody ? note.noteBody.replace(/<[^>]*>/g, "").substring(0, 65) + "…" : "Empty note…"}</p>
-                    <span style={s.cardTime}>
-                      {note.updatedAt ? new Date(note.updatedAt).toLocaleDateString() : ""}
-                    </span>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                      <span style={s.cardTime}>
+                        {note.updatedAt ? new Date(note.updatedAt).toLocaleDateString() : ""}
+                      </span>
+                      <span style={{ ...s.cardTime, color: note.categoryName === "Uncategorized" ? "#4b5563" : "#38bdf8", fontSize: "0.72rem" }}>
+                        {note.categoryName || "Uncategorized"}
+                      </span>
+                    </div>
                   </div>
                 ))
               )}
@@ -533,13 +572,13 @@ export default function Home() {
 }
 
 const s = {
-  page: { display: "flex", height: "100vh", width: "100vw", backgroundColor: "#131517", overflow: "hidden", fontFamily: "'Inter', sans-serif" },
-  workspace: { display: "flex", flexDirection: "column", flex: 1, marginLeft: "250px", height: "100vh" },
+  page: { display: "flex", height: "100%", width: "100%", backgroundColor: "#131517", overflow: "hidden", fontFamily: "'Inter', sans-serif" },
+  workspace: { display: "flex", flexDirection: "column", flex: 1, marginLeft: "250px", height:"100vh", maxHeight: "100vh", overflow: "hidden" },
   errorBanner: { backgroundColor: "#7f1d1d", color: "#fca5a5", padding: "8px 20px", fontSize: "0.85rem" },
   listPane: { width: "300px", borderRight: "1px solid #2d3135", backgroundColor: "#1a1d20", display: "flex", flexDirection: "column" },
   paneHeader: { padding: "18px 20px", borderBottom: "1px solid #2d3135", display: "flex", justifyContent: "space-between", alignItems: "center" },
   paneTitle: { fontWeight: "700", color: "#fff", fontSize: "0.95rem" },
-  countBadge: { backgroundColor: "#2d3135", color: "#38bdf8", padding: "2px 8px", borderRadius: "12px", fontSize: "0.75rem", fontWeight: "700" },
+  countBadge: { backgroundColor: "#2d3135", color: "#ffffff", padding: "2px 8px", borderRadius: "12px", fontSize: "0.75rem", fontWeight: "700" },
   listScroll: { flex: 1, overflowY: "auto", padding: "10px" },
   empty: { color: "#6b7280", textAlign: "center", padding: "30px", fontSize: "0.88rem" },
   card: { padding: "14px", borderRadius: "8px", cursor: "pointer", marginBottom: "6px" },

@@ -195,7 +195,7 @@ const s = {
   tagRow: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "11px 14px", backgroundColor: "#1e2124", borderRadius: "10px", cursor: "pointer", border: "1px solid #2d3135" },
   tagRowActive: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "11px 14px", backgroundColor: "#2d3135", borderRadius: "10px", cursor: "pointer", border: "1px solid #38bdf8" },
   tagInfo: { display: "flex", alignItems: "center", gap: "10px" },
-  hash: { color: "#38bdf8", fontWeight: "700" },
+  hash: { color: "#cdcdcd", fontWeight: "700" },
   tagName: { color: "#e2e8f0", fontWeight: "500", fontSize: "0.9rem" },
   tagBadge: { backgroundColor: "#2d3135", padding: "2px 8px", borderRadius: "10px", fontSize: "0.75rem", color: "#9ca3af", fontWeight: "600" },
   deleteTagBtn: { background: "none", border: "none", color: "#6b7280", cursor: "pointer", fontSize: "1rem", padding: "0 2px", lineHeight: 1 },

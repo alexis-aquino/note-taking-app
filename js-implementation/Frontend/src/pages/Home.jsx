@@ -8,6 +8,7 @@ import RichTextEditor from "../components/RichTextEditor";
 import { TrashIcon, PinIcon, SaveIcon, NotesIcon} from "../../../../shared-resources/icons";
 
 
+
 export default function Home() {
   const navigate = useNavigate();
   const location = useLocation();

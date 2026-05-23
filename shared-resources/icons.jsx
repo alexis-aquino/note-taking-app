@@ -287,3 +287,38 @@ export const CheckIcon = () => (
         <path d="m9 12 2 2 4-4"/>
     </svg>
 )
+
+export const BoldIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+    fill="currentColor">
+    <path d="M6 4h8a4 4 0 0 1 0 8H6zm0 8h9a4 4 0 0 1 0 8H6z"/>
+  </svg>
+)
+
+export const ItalicIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+    fill="currentColor">
+    <path d="M11 4h6v2h-2.5l-3 12H14v2H8v-2h2.5l3-12H11z"/>
+  </svg>
+)
+
+export const UnderlineIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+    fill="currentColor">
+    <path d="M6 3v7a6 6 0 0 0 12 0V3h-2v7a4 4 0 0 1-8 0V3H6zm-1 17h14v2H5z"/>
+  </svg>
+)
+
+export const TextColorIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+    fill="currentColor">
+    <path d="M9 3l-6 18h2.5l1.5-4.5h9l1.5 4.5H20L14 3H9zm-.5 11L12 5.5l3.5 8.5H8.5z"/>
+  </svg>
+)
+
+export const HighlightIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+    fill="currentColor">
+    <path d="m15.243 4.515-6.738 6.737-.707 2.121-1.04 1.041 2.828 2.829 1.04-1.041 2.122-.707 6.737-6.738-4.242-4.242zm6.364 3.535a1 1 0 0 1 0 1.414L13.243 18l-3.536.707.707-3.536 8.364-8.364a1 1 0 0 1 1.414 0l1.415 1.243zM4 20h8v2H4z"/>
+  </svg>
+)

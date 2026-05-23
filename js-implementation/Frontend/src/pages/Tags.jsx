@@ -163,11 +163,12 @@ export default function Tags() {
             ) : (
               <div style={s.cardGrid}>
                 {displayedNotes.map(note => (
-                  <div key={note.noteId} style={s.card} onClick={() => navigate("/Home")}>
+                  <div key={note.noteId} style={s.card} onClick={() => navigate("/Home", { state: { noteId: note.noteId } })}>
                     <h3 style={s.cardTitle}>{note.noteTitle || "Untitled Note"}</h3>
-                    <p style={s.cardPreview}>{note.noteBody}</p>
+                    <p style={s.cardPreview}>{note.noteBody?.replace(/<[^>]*>/g, "") || ""}</p>
                     <div style={s.cardFooter}>
                       <span>{note.updatedAt ? new Date(note.updatedAt).toLocaleDateString() : ""}</span>
+                      <span style={{ color: "#38bdf8", fontSize: "0.75rem", fontWeight: "600" }}>Open →</span>
                     </div>
                   </div>
                 ))}

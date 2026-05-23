@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import api from "../utils/api";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
-import { UserIcon, TrashIcon, LockIcon, EmailIcon } from "../../../../shared-resources/icons";
+import { UserIcon, TrashIcon, LockIcon, EmailIcon, ImportIcon, ExportIcon } from "../../../../shared-resources/icons";
 
 export default function Settings() {
   const navigate = useNavigate();
@@ -118,40 +118,20 @@ export default function Settings() {
       <div style={s.workspace}>
         <Header user={user} />
         <main style={s.main}>
-
           {/* Page title row with action buttons */}
-          <div style={s.titleRow}>
-            <div>
-              <h2 style={s.pageTitle}>Account Management</h2>
-              <p style={s.pageSub}>Manage your account preferences and application environment.</p>
-            </div>
-            <div style={s.actionBtnGroup}>
-              {/* Hidden file input for import */}
-              <input
-                ref={importInputRef}
-                type="file"
-                accept=".json,application/json"
-                style={{ display: "none" }}
-                onChange={handleImportFile}
-              />
-              <button style={s.importBtn} onClick={handleImportClick}>
-                ⬆ Import
-              </button>
-              <button style={s.exportBtn} onClick={handleExport}>
-                ⬇ Export
-              </button>
-              <button style={s.deleteTopBtn} onClick={() => setShowDeleteConfirm(true)}>
-                <TrashIcon /> Delete Account
-              </button>
-            </div>
+            <div style={s.titleRow}>
+              <div>
+                <h2 style={s.pageTitle}>Account Management</h2>
+                <p style={s.pageSub}>Manage your account preferences and application environment.</p>
+              </div> 
           </div>
 
+          
           {/* Profile card */}
           <div style={s.profileCard}>
             <div style={s.profileLeft}>
               <div style={s.avatarWrap}>
                 <div style={s.avatar}>{initials}</div>
-                <div style={s.onlineDot} />
               </div>
               <div>
                 <div style={s.profileName}>
@@ -163,8 +143,25 @@ export default function Settings() {
                   <span style={s.statDivider}>|</span>
                   <span>Joined {joinedDate}</span>
                 </div>
-              </div>
+              </div>            
             </div>
+            <div />
+            <div style={s.actionBtnGroup}>
+                {/* Hidden file input for import */}
+                <input
+                  ref={importInputRef}
+                    type="file"
+                    accept=".json,application/json"
+                    style={{ display: "none" }}
+                    onChange={handleImportFile}
+                />
+                <button style={s.importBtn} onClick={handleImportClick}>
+                  <ImportIcon/ > Import
+                </button>
+                <button style={s.exportBtn} onClick={handleExport}>
+                  <ExportIcon/ > Export
+                </button>
+              </div>
           </div>
 
           {/* Account info section */}
@@ -201,21 +198,21 @@ export default function Settings() {
               </div>
             </div>
 
-            <div style={s.actionButtons}>
-              <button style={s.changePasswordBtn} onClick={() => navigate("/forgot-password")}>
-                Change Password
-              </button>
-            </div>
-
             <div style={s.saveRow}>
-              {saveError && <span style={s.saveError}>{saveError}</span>}
-              {!saveError && <span style={s.lastUpdated}> </span>}
-              <button style={s.saveBtn} onClick={handleSave}>
-                {saved ? "✓ Saved!" : "Save Changes"}
-              </button>
+                <button style={s.changePasswordBtn} onClick={() => navigate("/forgot-password")}>
+                  Change Password
+                </button>
+                  {saveError && <span style={s.saveError}>{saveError}</span>}
+                  {!saveError && <span style={s.lastUpdated}> </span>}
+                <button style={s.saveBtn} onClick={handleSave}>
+                  {saved ? "✓ Saved!" : "Save Changes"}
+                </button> 
+                <button style={s.deleteTopBtn} onClick={() => setShowDeleteConfirm(true)}>
+                  <span style={{display: "inline-flex", filter:"brightness(0) invert(1)", opacity:1}}>
+                  <TrashIcon /> </span> <span> Delete Account </span>
+                </button>           
             </div>
           </div>
-
         </main>
       </div>
 
@@ -245,54 +242,293 @@ export default function Settings() {
 }
 
 const s = {
-  page: { display: "flex", height: "100vh", width: "100vw", backgroundColor: "#131517", fontFamily: "'Inter', sans-serif", overflow: "hidden" },
-  workspace: { display: "flex", flexDirection: "column", flex: 1, marginLeft: "250px", height: "100vh" },
-  main: { flex: 1, padding: "36px 40px", overflowY: "auto", color: "#fff" },
-
+  page: { 
+    display: "flex", 
+    height: "100vh", 
+    width: "100vw", 
+    backgroundColor: "#131517", 
+    fontFamily: "'Inter', sans-serif", 
+    overflow: "hidden" },
+  workspace: { 
+    display: "flex", 
+    flexDirection: "column", 
+    flex: 1, 
+    marginLeft: "250px", 
+    height: "100vh" },
+  main: { 
+    flex: 1, 
+    padding: "36px 40px", 
+    overflowY: "auto", 
+    color: "#fff" 
+  },
   // Title row with buttons
-  titleRow: { display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "28px" },
-  pageTitle: { fontSize: "1.8rem", fontWeight: "700", margin: "0 0 6px 0" },
-  pageSub: { color: "#9ca3af", fontSize: "0.9rem", margin: 0 },
-  actionBtnGroup: { display: "flex", flexDirection: "column", gap: "8px", alignItems: "flex-end" },
-  importBtn: { padding: "9px 18px", backgroundColor: "#1e2124", color: "#38bdf8", border: "1px solid #38bdf8", borderRadius: "8px", fontWeight: "600", fontSize: "0.85rem", cursor: "pointer", minWidth: "140px", textAlign: "center" },
-  exportBtn: { padding: "9px 18px", backgroundColor: "#1e2124", color: "#9ca3af", border: "1px solid #2d3135", borderRadius: "8px", fontWeight: "600", fontSize: "0.85rem", cursor: "pointer", minWidth: "140px", textAlign: "center" },
-  deleteTopBtn: { display: "flex", alignItems: "center", gap: "6px", justifyContent: "center", padding: "9px 18px", backgroundColor: "transparent", color: "#f87171", border: "1px solid #3a2020", borderRadius: "8px", fontWeight: "600", fontSize: "0.85rem", cursor: "pointer", minWidth: "140px" },
-
+  titleRow: { 
+    display: "flex", 
+    justifyContent: "space-between", 
+    alignItems: "flex-start", 
+    marginBottom: "28px" 
+  },
+  pageTitle: { 
+    fontSize: "1.8rem", 
+    fontWeight: "700", 
+    margin: "0 0 6px 0" 
+  },
+  pageSub: { 
+    color: "#9ca3af", 
+    fontSize: "0.9rem", 
+    margin: 0 
+  },
   // Profile card
-  profileCard: { backgroundColor: "#1e2124", borderRadius: "12px", padding: "24px 28px", border: "1px solid #2d3135", display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" },
-  profileLeft: { display: "flex", alignItems: "center", gap: "20px" },
-  avatarWrap: { position: "relative" },
-  avatar: { width: "72px", height: "72px", borderRadius: "50%", backgroundColor: "#3a4a5a", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem", fontWeight: "700", color: "#fff", border: "3px solid #2d3135" },
-  onlineDot: { position: "absolute", bottom: "4px", right: "4px", width: "14px", height: "14px", borderRadius: "50%", backgroundColor: "#22c55e", border: "2px solid #1e2124" },
-  profileName: { fontSize: "1.2rem", fontWeight: "700", marginBottom: "4px" },
-  profileRole: { color: "#9ca3af", fontSize: "0.88rem", marginBottom: "8px" },
-  profileStats: { display: "flex", gap: "8px", fontSize: "0.82rem", color: "#6b7280" },
-  statDivider: { color: "#3e444a" },
+  profileCard: { 
+    backgroundColor: "#1e2124", 
+    borderRadius: "12px", 
+    padding: "24px 28px", 
+    border: "1px solid #2d3135", 
+    display: "flex", 
+    justifyContent: "space-between", 
+    alignItems: "center", 
+    marginBottom: "24px",
+  },
+  actionBtnGroup: {
+    display: "flex", 
+    flexDirection: "column", 
+    gap: "8px"
+  },
+  importBtn: { 
+    width: "140px", 
+    padding: "9px 18px",
+    backgroundColor: "#38bdf8", 
+    color: "#ffffff",  
+    borderRadius: "8px",
+    fontWeight: "600", 
+    fontSize: "0.85rem", 
+    cursor: "pointer", 
+    marginTop: "30px",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "8px"
+  },
+  exportBtn: { 
+    width: "140px", 
+    padding: "9px 18px",
+    backgroundColor: "#00ff00", 
+    color: "#ffffff",  
+    borderRadius: "8px",
+    fontWeight: "600", 
+    fontSize: "0.85rem", 
+    cursor: "pointer", 
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "8px"
+  },
+  profileLeft: { 
+    display: "flex", 
+    alignItems: "center", 
+    gap: "20px" 
+  },
+  avatarWrap: { 
+    position: "relative" 
+  },
+  avatar: { 
+    width: "72px", 
+    height: "72px", 
+    borderRadius: "50%", 
+    backgroundColor: "#3a4a5a", 
+    display: "flex", 
+    alignItems: "center", 
+    justifyContent: "center", 
+    fontSize: "1.4rem", 
+    fontWeight: "700", 
+    color: "#fff", 
+    border: "3px solid #2d3135" 
+  },
+  profileName: { 
+    fontSize: "1.2rem",
+    fontWeight: "700", 
+    marginBottom: "4px" 
+  },
+  profileRole: { 
+    color: "#9ca3af", 
+    fontSize: "0.88rem", 
+    marginBottom: "8px" 
+  },
+  profileStats: { 
+    display: "flex", 
+    gap: "8px", 
+    fontSize: "0.82rem", 
+    color: "#6b7280" 
+  },
+  statDivider: { 
+    color: "#3e444a" 
+  },
 
   // Account info section
-  section: { backgroundColor: "#1e2124", borderRadius: "12px", padding: "24px 28px", border: "1px solid #2d3135", marginBottom: "20px" },
-  sectionTitle: { fontSize: "1.1rem", fontWeight: "700", margin: "0 0 4px 0" },
-  sectionSub: { color: "#9ca3af", fontSize: "0.85rem", marginBottom: "20px" },
-  fieldsRow: { display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px", marginBottom: "16px" },
-  fieldGroup: {},
-  label: { display: "block", marginBottom: "7px", fontSize: "0.82rem", color: "#9ca3af", fontWeight: "500" },
-  inputWrap: { display: "flex", alignItems: "center", gap: "8px", backgroundColor: "#131517", borderRadius: "8px", padding: "9px 12px", border: "1px solid #2d3135" },
-  inputIcon: { fontSize: "0.85rem", flexShrink: 0 },
-  input: { flex: 1, background: "none", border: "none", outline: "none", color: "#fff", fontSize: "0.88rem" },
-  actionButtons: { marginBottom: "16px" },
-  changePasswordBtn: { padding: "10px 18px", backgroundColor: "#38bdf8", color: "#fff", border: "none", borderRadius: "8px", fontWeight: "600", fontSize: "0.85rem", cursor: "pointer" },
-  saveRow: { display: "flex", justifyContent: "space-between", alignItems: "center", borderTop: "1px solid #2d3135", paddingTop: "16px" },
-  lastUpdated: { color: "#6b7280", fontSize: "0.82rem" },
-  saveError: { color: "#f87171", fontSize: "0.82rem" },
-  saveBtn: { padding: "9px 20px", backgroundColor: "#38bdf8", color: "#fff", border: "none", borderRadius: "8px", fontWeight: "600", fontSize: "0.85rem", cursor: "pointer" },
+  section: { 
+    backgroundColor: "#1e2124", 
+    borderRadius: "12px", 
+    padding: "24px 28px", 
+    border: "1px solid #2d3135", 
+    marginBottom: "20px" 
+  },
+  sectionTitle: { 
+    fontSize: "1.1rem", 
+    fontWeight: "700", 
+    margin: "0 0 4px 0"
+  },
+  sectionSub: { 
+    color: "#9ca3af", 
+    fontSize: "0.85rem", 
+    marginBottom: "20px" 
+  },
+  fieldsRow: { 
+    display: "grid", 
+    gridTemplateColumns: "1fr 1fr 1fr", 
+    gap: "16px", 
+    marginBottom: "16px" 
+  },
+  label: { 
+    display: "block", 
+    marginBottom: "7px", 
+    fontSize: "0.82rem", 
+    color: "#9ca3af", 
+    fontWeight: "500" 
+  },
+  inputWrap: { 
+    display: "flex", 
+    alignItems: "center", 
+    gap: "8px", 
+    backgroundColor: "#131517", 
+    borderRadius: "8px", 
+    padding: "9px 12px", 
+    border: "1px solid #2d3135" 
+  },
+  inputIcon: { 
+    fontSize: "0.85rem", 
+    flexShrink: 0 
+  },
+  input: { 
+    flex: 1, 
+    background: "none", 
+    border: "none", 
+    outline: "none", 
+    color: "#fff", 
+    fontSize: "0.88rem" 
+  },
+  saveRow: { 
+    display: "flex", 
+    flexDirection: "column", 
+    justifyContent: "flex-end", 
+    alignItems: "flex-end", 
+    gap: "3px", 
+    borderTop: "1px solid #2d3135", 
+    paddingTop: "16px", 
+  },
+  changePasswordBtn: { 
+    width: "160px",
+    padding: "9px 20px", 
+    backgroundColor: "#38bdf8", 
+    color: "#fff", 
+    border: "none", 
+    borderRadius: "8px", 
+    fontWeight: "600", 
+    fontSize: "0.85rem", 
+    cursor: "pointer" 
+  },
+  lastUpdated: { 
+    color: "#6b7280", 
+    fontSize: "0.82rem" 
+  },
+  saveError: { 
+    color: "#f87171", 
+    fontSize: "0.82rem" 
+  },
+  saveBtn: { 
+    width: "160px",
+    padding: "9px 20px", 
+    backgroundColor: "#38bdf8", 
+    color: "#ffffff", 
+    border: "none", 
+    borderRadius: "8px", 
+    fontWeight: "600", 
+    fontSize: "0.85rem", 
+    cursor: "pointer" 
+  },
+  deleteTopBtn: {
+    width: "170px", 
+    padding: "9px 18px",
+    backgroundColor: "#f62f2fff", 
+    color: "#ffffff",  
+    borderRadius: "8px", 
+    border: "none",
+    fontWeight: "600", 
+    fontSize: "0.85rem", 
+    cursor: "pointer", 
+    marginTop: "30px",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px"
+  },
 
   // Delete confirmation modal
-  modalOverlay: { position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 },
-  modalBox: { backgroundColor: "#1e2124", border: "1px solid #3a2020", borderRadius: "14px", padding: "36px 32px", maxWidth: "420px", width: "90%", textAlign: "center" },
-  modalIcon: { fontSize: "2.5rem", marginBottom: "12px" },
-  modalTitle: { fontSize: "1.3rem", fontWeight: "700", color: "#f87171", margin: "0 0 12px 0" },
-  modalText: { color: "#9ca3af", fontSize: "0.9rem", lineHeight: "1.6", marginBottom: "28px" },
-  modalBtns: { display: "flex", gap: "12px", justifyContent: "center" },
-  modalCancelBtn: { flex: 1, padding: "11px", backgroundColor: "#2d3135", color: "#fff", border: "1px solid #3e444a", borderRadius: "8px", fontWeight: "600", fontSize: "0.88rem", cursor: "pointer" },
-  modalDeleteBtn: { flex: 1, padding: "11px", backgroundColor: "#7f1d1d", color: "#fca5a5", border: "1px solid #991b1b", borderRadius: "8px", fontWeight: "600", fontSize: "0.88rem", cursor: "pointer" },
+  modalOverlay: { 
+    position: "fixed", 
+    inset: 0, 
+    backgroundColor: "rgba(0,0,0,0.7)", 
+    display: "flex", 
+    alignItems: "center", 
+    justifyContent: "center", 
+    zIndex: 1000 },
+  modalBox: { 
+    backgroundColor: "#1e2124", 
+    border: "1px solid #3a2020", 
+    borderRadius: "14px", 
+    padding: "36px 32px", 
+    maxWidth: "420px", 
+    width: "90%", 
+    textAlign: "center" 
+  },
+  modalIcon: { 
+    fontSize: "2.5rem", 
+    marginBottom: "12px" 
+  },
+  modalTitle: { 
+    fontSize: "1.3rem", 
+    fontWeight: "700", 
+    color: "#f87171", 
+    margin: "0 0 12px 0" 
+  },
+  modalText: { 
+    color: "#9ca3af", 
+    fontSize: "0.9rem", 
+    lineHeight: "1.6", 
+    marginBottom: "28px" 
+  },
+  modalBtns: { 
+    display: "flex", 
+    gap: "12px", 
+    justifyContent: "center" 
+  },
+  modalCancelBtn: { 
+    flex: 1, 
+    padding: "11px", 
+    backgroundColor: "#2d3135", 
+    color: "#fff", 
+    border: "1px solid #3e444a", 
+    borderRadius: "8px", 
+    fontWeight: "600", 
+    fontSize: "0.88rem", 
+    cursor: "pointer" },
+  modalDeleteBtn: { 
+    flex: 1, 
+    padding: "11px", 
+    backgroundColor: "#7f1d1d", 
+    color: "#fca5a5", 
+    border: "1px solid #991b1b", 
+    borderRadius: "8px", 
+    fontWeight: "600", 
+    fontSize: "0.88rem", 
+    cursor: "pointer" 
+  },
 };

@@ -28,6 +28,7 @@ export default function Home() {
   const [draftTagInput, setDraftTagInput] = useState("");
   const [counts, setCounts] = useState({ notes: 0 });
   const [tagMatchedIds, setTagMatchedIds] = useState(new Set());
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     fetchNotes();
@@ -35,9 +36,9 @@ export default function Home() {
     fetchAllTags();
     fetchCounts();
     if (location.state?.openNewNote) {
-    setShowNewNoteModal(true);
-    window.history.replaceState({}, "");
-  }
+      setShowNewNoteModal(true);
+      window.history.replaceState({}, "");
+    }
   }, []);
 
   const fetchNotes = async () => {
@@ -45,8 +46,13 @@ export default function Home() {
       setLoading(false);
       const res = await api.get("/api/notes/");
       setNotes(res.data);
-      // Keep active note in sync with fresh data; select first if none active
       setActiveNote(prev => {
+        // If navigated here with a specific noteId, open that note
+        const targetId = location.state?.noteId;
+        if (targetId) {
+          window.history.replaceState({}, ""); // clear state so refresh doesn't re-select
+          return res.data.find(n => n.noteId === targetId) ?? res.data[0] ?? null;
+        }
         if (!prev) return res.data[0] ?? null;
         const refreshed = res.data.find(n => n.noteId === prev.noteId);
         return refreshed ?? res.data[0] ?? null;
@@ -145,16 +151,23 @@ export default function Home() {
     }
   };
 
-  const handleDelete = async () => {
-  if (!activeNote?.noteId) return;
-  if (!window.confirm("Permanently delete this note? This cannot be undone.")) return;
-  try {
-    await api.delete(`/api/notes/${activeNote.noteId}`);
-    setNotes(prev => prev.filter(n => n.noteId !== activeNote.noteId));
-    setActiveNote(null);
-  } catch {
-    setError("Failed to delete note.");
-  }
+  // Opens the confirmation modal — actual delete happens in handleDeleteNote
+  const handleDelete = () => {
+    if (!activeNote?.noteId) return;
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteNote = async () => {
+    if (!activeNote?.noteId) return;
+    try {
+      await api.delete(`/api/notes/${activeNote.noteId}`);
+      setNotes(prev => prev.filter(n => n.noteId !== activeNote.noteId));
+      setActiveNote(null);
+      setShowDeleteModal(false);
+    } catch {
+      setError("Failed to delete note.");
+      setShowDeleteModal(false);
+    }
   };
 
   const handleTogglePinned = async () => {
@@ -578,6 +591,40 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div style={s.overlay} onClick={() => setShowDeleteModal(false)}>
+          <div style={s.deleteModal} onClick={(e) => e.stopPropagation()}>
+
+            {/* Red icon circle */}
+            <div style={s.deleteIconWrap}>
+              <span style={{display: "inline-flex", transform: "scale(1.5)", transformOrigin: "left center", marginRight: "8px"}}>
+              <TrashIcon />
+              </span>
+            </div>
+
+            <h3 style={s.deleteTitle}>Delete Note</h3>
+
+            <p style={s.deleteMsg}>
+              Are you sure you want to permanently delete{" "}
+              <strong style={{ color: "#fff" }}>
+                "{activeNote?.noteTitle || "Untitled Note"}"
+              </strong>?
+            </p>
+
+            <div style={s.deleteBtns}>
+              <button style={s.deleteCancelBtn} onClick={() => setShowDeleteModal(false)}>
+                Cancel
+              </button>
+              <button style={s.deleteConfirmBtn} onClick={handleDeleteNote}>
+                Delete Forever
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -626,7 +673,49 @@ const s = {
   modalFooter: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px" },
   draftStatus: { color: "#6b7280", fontSize: "0.8rem" },
   discardBtn: { padding: "8px 18px", background: "none", border: "none", color: "#9ca3af", cursor: "pointer", fontWeight: "600", fontSize: "0.88rem" },
-  saveNoteBtn: { padding: "8px 20px", backgroundColor: "#38bdf8", color: "#fff", border: "none", borderRadius: "8px", fontWeight: "700", fontSize: "0.88rem", cursor: "pointer" }
+  saveNoteBtn: { padding: "8px 20px", backgroundColor: "#38bdf8", color: "#fff", border: "none", borderRadius: "8px", fontWeight: "700", fontSize: "0.88rem", cursor: "pointer" },
+
+  // ── Delete confirmation modal ──────────────────────────────────────────────
+  deleteModal: {
+    backgroundColor: "#1e2227", border: "1px solid #3a3f47",
+    borderRadius: "16px", padding: "36px 32px 28px",
+    width: "min(420px, 90vw)", display: "flex", flexDirection: "column",
+    alignItems: "center", gap: "12px",
+    boxShadow: "0 24px 48px rgba(0,0,0,0.7), 0 0 0 1px rgba(248,113,113,0.08)"
+  },
+  deleteIconWrap: {
+    width: "60px", height: "60px", borderRadius: "50%",
+    backgroundColor: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.2)",
+    display: "flex", alignItems: "center", justifyContent: "center",
+    marginBottom: "4px"
+  },
+  deleteTitle: {
+    color: "#fff", fontSize: "1.15rem", fontWeight: "700",
+    margin: 0, textAlign: "center"
+  },
+  deleteMsg: {
+    color: "#9ca3af", fontSize: "0.9rem", textAlign: "center",
+    lineHeight: "1.6", margin: 0
+  },
+  deleteSubMsg: {
+    color: "#6b7280", fontSize: "0.78rem", textAlign: "center",
+    margin: 0
+  },
+  deleteBtns: {
+    display: "flex", gap: "10px", marginTop: "8px", width: "100%"
+  },
+  deleteCancelBtn: {
+    flex: 1, padding: "10px", backgroundColor: "#2d3135",
+    border: "1px solid #3a3f47", borderRadius: "8px",
+    color: "#d1d5db", fontWeight: "600", fontSize: "0.88rem",
+    cursor: "pointer"
+  },
+  deleteConfirmBtn: {
+    flex: 1, padding: "10px", backgroundColor: "#dc2626",
+    border: "none", borderRadius: "8px",
+    color: "#fff", fontWeight: "700", fontSize: "0.88rem",
+    cursor: "pointer"
+  }
 };
 
 // Small inline tag-picker used in the editor metabar

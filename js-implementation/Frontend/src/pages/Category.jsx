@@ -160,9 +160,9 @@ export default function Category() {
               <p style={s.empty}>Loading…</p>
             ) : categories.length === 0 ? (
               <div style={s.emptyState}>
-                <div style={s.emptyIcon}>📁</div>
+                <div style={s.emptyIcon}><CategoryIcon /></div>
                 <p style={s.emptyTitle}>No categories yet</p>
-                <p style={s.emptySub}>Create a category to organise your notes.</p>
+                <p style={s.emptySub}>Create a category to organize your notes.</p>
               </div>
             ) : (
               <div style={s.grid}>

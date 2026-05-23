@@ -9,9 +9,9 @@ USE noteAppDb;
 -- Two demo users (satisfies 'multiple users' requirement)
 INSERT INTO users (userEmail, displayName, passwordHash) VALUES
 ('alice@demo.com', 'Alice Santos',
-'$2b$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi'),
+'$2b$12$/jw0EqOM.WZKCMgODMNOFOkUR9USIHYkugYQz9HIPzE8J01nJlQZq'),
 ('bob@demo.com', 'Bob Reyes',
-'$2b$12$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi');
+'$2b$12$/jw0EqOM.WZKCMgODMNOFOkUR9USIHYkugYQz9HIPzE8J01nJlQZq');
 -- Alice's categories (userId = 1)
 INSERT INTO categories (userId, categoryName) VALUES
 (1, 'School'),

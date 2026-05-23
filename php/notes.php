@@ -117,6 +117,18 @@ try {
         exit;
     }
 
+    if ($httpMethod === 'GET' && $actionParam === 'tags') {
+        $stmt = $dbConnection->prepare(
+            'SELECT tagId, tagName, createdAt 
+            FROM tags 
+            WHERE userId = ? 
+            ORDER BY tagName ASC'
+        );
+        $stmt->execute([$currentUserId]);
+        echo json_encode($stmt->fetchAll());
+        exit;
+    }
+
     if ($httpMethod === 'GET') {
         $stmt = $dbConnection->prepare(
         'SELECT noteId, noteTitle, noteBody, isPinned, categoryId, createdAt, updatedAt
@@ -179,8 +191,7 @@ try {
         }
 
     http_response_code(201);
-    echo json_encode(['message' => 'Note created.',
-    'noteId' => (int)$dbConnection->lastInsertId()]);
+    echo json_encode(['message' => 'Note created.', 'noteId' => $newNoteId]);
     exit;
     }
 

@@ -33,7 +33,6 @@ export default function Header({ user, categories = [], allTags = [], onSelectNo
               <span style={s.profileRole}>{user?.userEmail || ""}</span>
             </div>
             <div style={s.avatar}>{initials}</div>
-            <div style={s.onlineDot} />
           </div>
         </div>
       </header>
@@ -77,9 +76,4 @@ const s = {
     display: "flex", alignItems: "center", justifyContent: "center",
     fontWeight: "700", fontSize: "0.8rem", border: "2px solid #2d3135"
   },
-  onlineDot: {
-    position: "absolute", bottom: "0", right: "0",
-    width: "10px", height: "10px", borderRadius: "50%",
-    backgroundColor: "#22c55e", border: "2px solid #1a1d20"
-  }
 };

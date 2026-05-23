@@ -95,6 +95,21 @@ try {
         exit;
     }
 
+    if ($httpMethod === 'GET' && $actionParam === 'categories') {
+        $stmt = $dbConnection->prepare(
+            'SELECT categoryId, categoryName, createdAt 
+            FROM categories 
+            WHERE userId = ? 
+            ORDER BY categoryName ASC'
+        );
+
+        $stmt->execute([$currentUserId]);
+        $categories = $stmt->fetchAll();
+        
+        echo json_encode($categories);
+        exit;
+    }
+
     if ($httpMethod === 'GET') {
         $stmt = $dbConnection->prepare(
         'SELECT noteId, noteTitle, noteBody, isPinned, categoryId, createdAt, updatedAt
@@ -109,21 +124,6 @@ try {
         $row['noteBodyHtml'] = renderMarkdown($mdConverter, $row['noteBody']);
     }
         echo json_encode($rows);
-        exit;
-    }
-
-    if ($httpMethod === 'GET' && $actionParam === 'categories') {
-        $stmt = $dbConnection->prepare(
-            'SELECT categoryId, categoryName, createdAt 
-            FROM categories 
-            WHERE userId = ? 
-            ORDER BY categoryName ASC'
-        );
-
-        $stmt->execute([$currentUserId]);
-        $categories = $stmt->fetchAll();
-        
-        echo json_encode($categories);
         exit;
     }
 

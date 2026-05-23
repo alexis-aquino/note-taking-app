@@ -153,40 +153,87 @@ try {
     );
 
     $stmt->execute([$currentUserId, $noteTitle, $noteBody, $categoryId, $isPinned]);
-        http_response_code(201);
-        echo json_encode(['message' => 'Note created.',
-        'noteId' => (int)$dbConnection->lastInsertId()]);
-        exit;
+    $newNoteId = (int)$dbConnection->lastInsertId();
+
+    $tags = $body['tags'] ?? [];
+        if (is_array($tags)) {
+            foreach ($tags as $tagName) {
+                $tagName = trim($tagName);
+                if ($tagName === '') continue; 
+
+                $tagStmt = $dbConnection->prepare('SELECT tagId FROM tags WHERE userId = ? AND tagName = ?');
+                $tagStmt->execute([$currentUserId, $tagName]);
+                $tagRow = $tagStmt->fetch();
+
+                if ($tagRow) {
+                    $tagId = $tagRow['tagId']; 
+                } else {
+                    $insertTag = $dbConnection->prepare('INSERT INTO tags (userId, tagName) VALUES (?, ?)');
+                    $insertTag->execute([$currentUserId, $tagName]);
+                    $tagId = (int)$dbConnection->lastInsertId();
+                }
+
+                $linkStmt = $dbConnection->prepare('INSERT INTO note_tags (noteId, tagId) VALUES (?, ?)');
+                $linkStmt->execute([$newNoteId, $tagId]);
+            }
+        }
+
+    http_response_code(201);
+    echo json_encode(['message' => 'Note created.',
+    'noteId' => (int)$dbConnection->lastInsertId()]);
+    exit;
     }
 
-    if ($httpMethod === 'PUT' && $noteIdParam !== null) {
+if ($httpMethod === 'PUT' && $noteIdParam !== null) {
         $body = json_decode(file_get_contents('php://input'), true);
         $noteTitle = trim($body['noteTitle'] ?? '');
         $noteBody = trim($body['noteBody'] ?? '');
         $categoryId = !empty($body['categoryId']) ? (int)$body['categoryId'] : null;
         $isPinned = !empty($body['isPinned']) ? 1 : 0;
 
-    if ($noteTitle === '' || $noteBody === '') {
-        http_response_code(400);
-        echo json_encode(['error' => 'Title and body are required.']);
-        exit;
-    }
+        if ($noteTitle === '' || $noteBody === '') {
+            http_response_code(400);
+            echo json_encode(['error' => 'Title and body are required.']);
+            exit;
+        }
 
-    $check = $dbConnection->prepare(
-        'SELECT noteId FROM notes WHERE noteId = ? AND userId = ?'
-    );
+        $check = $dbConnection->prepare(
+            'SELECT noteId FROM notes WHERE noteId = ? AND userId = ?'
+        );
+        $check->execute([$noteIdParam, $currentUserId]);
+        if (!$check->fetch()) sendNotFound();
 
-    $check->execute([$noteIdParam, $currentUserId]);
-    
-    if (!$check->fetch()) sendNotFound();
+        $stmt = $dbConnection->prepare(
+            'UPDATE notes SET noteTitle=?, noteBody=?, categoryId=?, isPinned=?
+            WHERE noteId=? AND userId=?'
+        );
+        $stmt->execute([$noteTitle, $noteBody, $categoryId, $isPinned, $noteIdParam, $currentUserId]);
 
-    $stmt = $dbConnection->prepare(
-        'UPDATE notes SET noteTitle=?, noteBody=?, categoryId=?, isPinned=?
-        WHERE noteId=? AND userId=?'
-    );
+        if (isset($body['tags']) && is_array($body['tags'])) {
+            $clearTags = $dbConnection->prepare('DELETE FROM note_tags WHERE noteId = ?');
+            $clearTags->execute([$noteIdParam]);
 
-    $stmt->execute([$noteTitle, $noteBody, $categoryId, $isPinned,
-    $noteIdParam, $currentUserId]);
+            foreach ($body['tags'] as $tagName) {
+                $tagName = trim($tagName);
+                if ($tagName === '') continue;
+
+                $tagStmt = $dbConnection->prepare('SELECT tagId FROM tags WHERE userId = ? AND tagName = ?');
+                $tagStmt->execute([$currentUserId, $tagName]);
+                $tagRow = $tagStmt->fetch();
+
+                if ($tagRow) {
+                    $tagId = $tagRow['tagId'];
+                } else {
+                    $insertTag = $dbConnection->prepare('INSERT INTO tags (userId, tagName) VALUES (?, ?)');
+                    $insertTag->execute([$currentUserId, $tagName]);
+                    $tagId = (int)$dbConnection->lastInsertId();
+                }
+
+                $linkStmt = $dbConnection->prepare('INSERT INTO note_tags (noteId, tagId) VALUES (?, ?)');
+                $linkStmt->execute([$noteIdParam, $tagId]);
+            }
+        }
+
         echo json_encode(['message' => 'Note updated.']);
         exit;
     }

@@ -46,6 +46,8 @@ try {
         $searchQuery = trim($_GET['q'] ?? '');
         $categoryId = isset($_GET['categoryId']) && $_GET['categoryId'] !== '' ? (int)$_GET['categoryId'] : null;
 
+        $tagId = isset($_GET['tagId']) && $_GET['tagId'] !== '' ? (int)$_GET['tagId'] : null;
+
         $sql = 'SELECT noteId, noteTitle, noteBody, isPinned, categoryId, createdAt, updatedAt 
                 FROM notes 
                 WHERE userId = :userId';
@@ -59,6 +61,11 @@ try {
         if ($categoryId !== null) {
             $sql .= ' AND categoryId = :catId';
             $params[':catId'] = $categoryId;
+        }
+
+        if ($tagId !== null) {
+            $sql .= ' AND noteId IN (SELECT noteId FROM note_tags WHERE tagId = :tagId)';
+            $params[':tagId'] = $tagId;
         }
 
         if ($searchQuery !== '') {

@@ -112,6 +112,21 @@ try {
         exit;
     }
 
+    if ($httpMethod === 'GET' && $actionParam === 'categories') {
+        $stmt = $dbConnection->prepare(
+            'SELECT categoryId, categoryName, createdAt 
+            FROM categories 
+            WHERE userId = ? 
+            ORDER BY categoryName ASC'
+        );
+
+        $stmt->execute([$currentUserId]);
+        $categories = $stmt->fetchAll();
+        
+        echo json_encode($categories);
+        exit;
+    }
+
     if ($httpMethod === 'POST') {
         $body = json_decode(file_get_contents('php://input'), true);
         $noteTitle = trim($body['noteTitle'] ?? '');

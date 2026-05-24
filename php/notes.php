@@ -59,8 +59,12 @@ try {
         }
 
         if ($categoryId !== null) {
-            $sql .= ' AND categoryId = :catId';
-            $params[':catId'] = $categoryId;
+            if ($_GET['categoryId'] === 'uncategorized') {
+                $sql .= ' AND categoryId IS NULL';
+            } else {
+                $sql .= ' AND categoryId = :catId';
+                $params[':catId'] = $categoryId;
+            }
         }
 
         if ($tagId !== null) {
@@ -112,6 +116,12 @@ try {
 
         $stmt->execute([$currentUserId]);
         $categories = $stmt->fetchAll();
+
+        array_unshift($categories, [
+            'categoryId' => 'uncategorized', 
+            'categoryName' => 'Uncategorized',
+            'createdAt' => null
+        ]);
         
         echo json_encode($categories);
         exit;

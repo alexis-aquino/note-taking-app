@@ -21,6 +21,7 @@ export default function Category() {
   const [newCatName, setNewCatName] = useState("");
   const [renamingId, setRenamingId] = useState(null);
   const [renameValue, setRenameValue] = useState("");
+  const [editingColor, setEditingColor] = useState(null);
   const renameRef = useRef(null);
 
   useEffect(() => { fetchCategories(); }, []);
@@ -85,16 +86,17 @@ export default function Category() {
     e.stopPropagation();
     setRenamingId(cat.categoryId);
     setRenameValue(cat.categoryName);
+    setEditingColor(cat.categoryColor || null);
   };
 
-  const handleRename = async (categoryId) => {
+  const handleRename = async (categoryId, colorOverride) => {
     const name = renameValue.trim();
     if (!name) { setRenamingId(null); return; }
+    const colorToSave = colorOverride !== undefined ? colorOverride : editingColor;
     try {
-      await api.put(`/api/categories/${categoryId}`, { categoryName: name });
+      await api.put(`/api/categories/${categoryId}`, { categoryName: name, categoryColor: colorToSave });
       setRenamingId(null);
       fetchCategories();
-      // Update selectedCat name if it's the one being renamed
       if (selectedCat?.categoryId === categoryId) {
         setSelectedCat(prev => ({ ...prev, categoryName: name }));
       }
@@ -167,30 +169,45 @@ export default function Category() {
             ) : (
               <div style={s.grid}>
                 {categories.map((cat, i) => {
-                  const color = PALETTE[i % PALETTE.length];
+                  const color = cat.categoryColor || null;
                   const isRenaming = renamingId === cat.categoryId;
                   return (
                     <div
                       key={cat.categoryId}
-                      style={{ ...s.catCard, borderTop: `3px solid ${color}` }}
+                      style={{ ...s.catCard, borderTop: color ? `3px solid ${color}` : "3px solid transparent" }}
                       onClick={() => !isRenaming && handleSelectCategory(cat)}
                     >
                       {/* Color dot + name */}
                       <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
-                        <div style={{ width: "10px", height: "10px", borderRadius: "50%", backgroundColor: color, flexShrink: 0 }} />
+                        {color && <div style={{ width: "10px", height: "10px", borderRadius: "50%", backgroundColor: color, flexShrink: 0 }} />}
                         {isRenaming ? (
-                          <input
-                            ref={renameRef}
-                            style={s.renameInput}
-                            value={renameValue}
-                            onChange={e => setRenameValue(e.target.value)}
-                            onKeyDown={e => {
-                              if (e.key === "Enter") handleRename(cat.categoryId);
-                              if (e.key === "Escape") setRenamingId(null);
-                            }}
-                            onBlur={() => handleRename(cat.categoryId)}
-                            onClick={e => e.stopPropagation()}
-                          />
+                          <div style={{ flex: 1 }} onClick={e => e.stopPropagation()}>
+                            <input
+                              ref={renameRef}
+                              style={s.renameInput}
+                              value={renameValue}
+                              onChange={e => setRenameValue(e.target.value)}
+                              onKeyDown={e => {
+                                if (e.key === "Enter") handleRename(cat.categoryId);
+                                if (e.key === "Escape") setRenamingId(null);
+                              }}
+                            />
+                            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap", marginTop: "8px", alignItems: "center" }}>
+                              {/* X = no color */}
+                              <div
+                                onClick={() => { setEditingColor(null); handleRename(cat.categoryId, null); }}
+                                style={{ width: "18px", height: "18px", borderRadius: "50%", backgroundColor: "#2d3135", border: "2px solid #3e444a", cursor: "pointer", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", color: "#9ca3af", fontSize: "0.7rem", fontWeight: "700" }}
+                                title="No color"
+                              >✕</div>
+                              {PALETTE.map(c => (
+                                <div
+                                  key={c}
+                                  onClick={() => { setEditingColor(c); handleRename(cat.categoryId, c); }}
+                                  style={{ width: "18px", height: "18px", borderRadius: "50%", backgroundColor: c, border: editingColor === c ? "2px solid #fff" : "2px solid transparent", cursor: "pointer", flexShrink: 0 }}
+                                />
+                              ))}
+                            </div>
+                          </div>
                         ) : (
                           <h3 style={s.catName}>{cat.categoryName}</h3>
                         )}
@@ -202,7 +219,7 @@ export default function Category() {
 
                       {/* Actions */}
                       <div style={s.catActions}>
-                        <button style={{ ...s.openBtn, color }} onClick={() => handleSelectCategory(cat)}>
+                        <button style={s.openBtn} onClick={() => handleSelectCategory(cat)}>
                           Open
                         </button>
                         <div style={{ display: "flex", gap: "4px" }}>
@@ -292,7 +309,7 @@ const s = {
   renameInput: { flex: 1, background: "none", border: "none", borderBottom: "1px solid #38bdf8", outline: "none", color: "#fff", fontSize: "1.05rem", fontWeight: "700", padding: "0 2px" },
   catCount: { color: "#6b7280", fontSize: "0.82rem", margin: "0 0 8px 0" },
   catActions: { display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "auto", paddingTop: "10px", borderTop: "1px solid #2d3135" },
-  openBtn: { background: "none", border: "none", fontWeight: "600", fontSize: "0.85rem", cursor: "pointer", padding: 0 },
+  openBtn: { background: "none", border: "none", color: "#ffffff", fontWeight: "600", fontSize: "0.85rem", cursor: "pointer", padding: 0 },
   iconBtn: { background: "none", border: "none", color: "#6b7280", cursor: "pointer", fontSize: "0.9rem", padding: "3px 5px", borderRadius: "4px" },
   card: { backgroundColor: "#1e2124", borderRadius: "12px", padding: "20px", border: "1px solid #2d3135", display: "flex", flexDirection: "column", justifyContent: "space-between", minHeight: "140px", cursor: "pointer" },
   cardTitle: { fontSize: "1rem", fontWeight: "600", color: "#fff", margin: 0 },

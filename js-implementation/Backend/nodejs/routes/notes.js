@@ -21,7 +21,7 @@ notesRouter.get('/', async (req, res) => {
     try {
         const [noteRows] = await dbPool.query(
             `SELECT n.noteId, n.noteTitle, n.noteBody, n.isPinned,
-                n.categoryId, c.categoryName, n.createdAt, n.updatedAt
+                n.categoryId, c.categoryName, c.categoryColor, n.createdAt, n.updatedAt
              FROM notes n
              LEFT JOIN categories c ON n.categoryId = c.categoryId
              WHERE n.userId = ?
@@ -113,7 +113,7 @@ notesRouter.get('/search', async (req, res) => {
 
         const [likeRows] = await dbPool.query(
             `SELECT n.noteId, n.noteTitle, n.noteBody, n.isPinned,
-                    n.categoryId, c.categoryName, n.createdAt, n.updatedAt
+                    n.categoryId, c.categoryName, c.categoryColor, n.createdAt, n.updatedAt
              FROM notes n
              LEFT JOIN categories c ON n.categoryId = c.categoryId
              ${buildTagJoins()}
@@ -140,7 +140,7 @@ notesRouter.get('/search', async (req, res) => {
 
                 const [ftRows] = await dbPool.query(
                     `SELECT n.noteId, n.noteTitle, n.noteBody, n.isPinned,
-                            n.categoryId, c.categoryName, n.createdAt, n.updatedAt,
+                            n.categoryId, c.categoryName, c.categoryColor, n.createdAt, n.updatedAt,
                             MATCH(n.noteTitle, n.noteBody) AGAINST(? IN BOOLEAN MODE) AS relevanceScore
                      FROM notes n
                      LEFT JOIN categories c ON n.categoryId = c.categoryId
@@ -186,7 +186,7 @@ notesRouter.get('/:noteId', async (req, res) => {
     try {
         const [rows] = await dbPool.query(
             `SELECT n.noteId, n.noteTitle, n.noteBody, n.isPinned,
-                    n.categoryId, c.categoryName,
+                    n.categoryId, c.categoryName, c.categoryColor,
                     n.createdAt, n.updatedAt
              FROM notes n
              LEFT JOIN categories c ON n.categoryId = c.categoryId

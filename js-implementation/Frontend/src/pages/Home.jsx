@@ -172,7 +172,7 @@ export default function Home() {
 
   const handleTogglePinned = async () => {
     if (!activeNote?.noteId) return;
-    const newVal = !activeNote.isPinned;
+    const newVal = !(activeNote.isPinned === true || activeNote.isPinned === 1);
     try {
       await api.put(`/api/notes/${activeNote.noteId}`, { isPinned: newVal });
       setActiveNote(prev => ({ ...prev, isPinned: newVal }));
@@ -316,6 +316,10 @@ export default function Home() {
     // Match by tag (resolved via backend)
     if (tagMatchedIds.has(note.noteId)) return true;
     return false;
+  }).sort((a, b) => {
+    const aPinned = a.isPinned === true || a.isPinned === 1 ? 1 : 0;
+    const bPinned = b.isPinned === true || b.isPinned === 1 ? 1 : 0;
+    return bPinned - aPinned;
   });
 
   if (loading) {
@@ -361,20 +365,21 @@ export default function Home() {
                 filteredNotes.map(note => (
                   <div
                     key={note.noteId}
-                    style={activeNote?.noteId === note.noteId ? s.cardActive : s.card}
+                    style={
+                      activeNote?.noteId === note.noteId /// borderLeft: \3px solid ${note.categoryColor || "#38bdf8"}
+                        ? { ...s.cardActive, borderLeft: note.categoryColor ? `3px solid ${note.categoryColor}` : "none" }
+                        : { ...s.card, borderLeft: note.categoryColor ? `3px solid ${note.categoryColor}` : "none" }
+                    }
                     onClick={() => setActiveNote(note)}
                   >
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
                       <h4 style={s.cardTitle}>{note.noteTitle || "Untitled Note"}</h4>
-                      {note.isPinned && <span style={{ color: "#d43434", fontSize: "0.85rem", transform: "rotate(45deg)"}}><PinIcon /></span>}
+                      {(note.isPinned === true || note.isPinned === 1) && <span style={{ color: "#d43434", fontSize: "0.85rem", transform: "rotate(45deg)"}}><PinIcon /></span>}
                     </div>
                     <p style={s.cardSnippet}>{note.noteBody ? note.noteBody.replace(/<[^>]*>/g, "").substring(0, 65) + "…" : "Empty note…"}</p>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                       <span style={s.cardTime}>
                         {note.updatedAt ? new Date(note.updatedAt).toLocaleDateString() : ""}
-                      </span>
-                      <span style={{ ...s.cardTime, color: note.categoryName === "Uncategorized" ? "#4b5563" : "#38bdf8", fontSize: "0.72rem" }}>
-                        {note.categoryName || "Uncategorized"}
                       </span>
                     </div>
                   </div>

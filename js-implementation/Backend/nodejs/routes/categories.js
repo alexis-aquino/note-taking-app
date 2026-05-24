@@ -10,7 +10,7 @@ categoriesRouter.get('/', async (req, res) => {
     const currentUserId = req.session.currentUserId;
     try {
         const [rows] = await dbPool.query(
-            `SELECT c.categoryId, c.categoryName,
+            `SELECT c.categoryId, c.categoryName, c.categoryColor,
                     COUNT(n.noteId) AS noteCount
              FROM categories c
              LEFT JOIN notes n ON n.categoryId = c.categoryId
@@ -68,14 +68,14 @@ categoriesRouter.post('/', async (req, res) => {
 categoriesRouter.put('/:categoryId', async (req, res) => {
     const currentUserId = req.session.currentUserId;
     const { categoryId } = req.params;
-    const { categoryName } = req.body;
+    const { categoryName, categoryColor } = req.body;
     if (!categoryName || !categoryName.trim()) {
         return res.status(400).json({ error: 'Category name is required.' });
     }
     try {
         const [result] = await dbPool.query(
-            'UPDATE categories SET categoryName = ? WHERE categoryId = ? AND userId = ?',
-            [categoryName.trim(), categoryId, currentUserId]
+            'UPDATE categories SET categoryName = ?, categoryColor = ? WHERE categoryId = ? AND userId = ?',
+            [categoryName.trim(), categoryColor !== undefined ? (categoryColor || null) : null, categoryId, currentUserId]
         );
         if (result.affectedRows === 0) return res.status(404).json({ error: 'Category not found.' });
         return res.status(200).json({ message: 'Category renamed.' });

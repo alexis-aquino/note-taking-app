@@ -19,35 +19,55 @@ body {
 }
 
 /* 3. UNIVERSAL CUSTOM DARK SCROLLBAR PACK */
-/* Targets any container inside your app that has scrolling enabled */
+/* Applied globally to ALL scrollable elements — no class or inline style needed */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #3e444a #1a1d20;
+}
+
+*::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+*::-webkit-scrollbar-track {
+    background: #1a1d20;
+}
+
+*::-webkit-scrollbar-thumb {
+    background: #3e444a;
+    border-radius: 10px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+    background: #4f565e;
+}
+
+/* Keep the old targeted selectors as fallback */
 div[style*="overflow-y: auto"],
     .custom-scrollbar {
-    scrollbar-width: thin !important; /* Thin styling bar profile for Firefox */
-    scrollbar-color: #3e444a #1a1d20 !important; /* Thumb and Track colors for Firefox */
+    scrollbar-width: thin !important;
+    scrollbar-color: #3e444a #1a1d20 !important;
 }
 
-/* Webkit browser engines styling rule layout (Chrome, Safari, Edge) */
 div[style*="overflow-y: auto"]::-webkit-scrollbar,
     .custom-scrollbar::-webkit-scrollbar {
-    width: 6px !important;  /* Slim vertical scrollbar thickness */
-    height: 6px !important; /* Slim horizontal scrollbar thickness */
+    width: 6px !important;
+    height: 6px !important;
 }
 
-/* The structural scrolling gutter track background */
 div[style*="overflow-y: auto"]::-webkit-scrollbar-track,
     .custom-scrollbar::-webkit-scrollbar-track {
-    background: #1a1d20 !important; /* Matches your listPane panel background exactly */
+    background: #1a1d20 !important;
 }
 
-/* The draggable scrollbar handle thumb design */
 div[style*="overflow-y: auto"]::-webkit-scrollbar-thumb,
     .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #3e444a !important; /* Subdued low-contrast gray indicator */
-    border-radius: 10px !important;  /* Smooth pill-shaped capsule edges */
+    background: #3e444a !important;
+    border-radius: 10px !important;
 }
 
-/* Hover dynamic highlight state when interacting with the thumb */
 div[style*="overflow-y: auto"]::-webkit-scrollbar-thumb:hover,
     .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #4f565e !important; /* Slightly brightens up to register focus */
+    background: #4f565e !important;
 }

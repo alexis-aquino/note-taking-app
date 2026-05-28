@@ -59,11 +59,13 @@ export default function SearchModal({ isOpen, onClose, categories = [], allTags 
   // Multiple tags — array of tag ID strings
   const [selectedTagIds, setSelectedTagIds] = useState([]);
   const [showTagDrop, setShowTagDrop]   = useState(false);
+  const [showCatDrop, setShowCatDrop]   = useState(false);
   const [focusedIdx, setFocusedIdx]     = useState(-1);
 
   const inputRef    = useRef(null);
   const debounceRef = useRef(null);
   const tagDropRef  = useRef(null);
+  const catDropRef  = useRef(null);
   const listRef     = useRef(null);
 
   // Reset & focus on open
@@ -79,6 +81,7 @@ export default function SearchModal({ isOpen, onClose, categories = [], allTags 
   useEffect(() => {
     const h = (e) => {
       if (tagDropRef.current && !tagDropRef.current.contains(e.target)) setShowTagDrop(false);
+      if (catDropRef.current && !catDropRef.current.contains(e.target)) setShowCatDrop(false);
     };
     document.addEventListener("mousedown", h);
     return () => document.removeEventListener("mousedown", h);
@@ -139,10 +142,10 @@ export default function SearchModal({ isOpen, onClose, categories = [], allTags 
   };
 
   // Category filter — fires immediately
-  const handleCategoryChange = (e) => {
-    const id = e.target.value;
-    setSelectedCat(id);
-    runSearch(query, id, selectedTagIds);
+  const handleCategoryChange = (catId) => {
+    setSelectedCat(catId);
+    setShowCatDrop(false);
+    runSearch(query, catId, selectedTagIds);
   };
 
   // Toggle a tag in/out of the selected set
@@ -215,13 +218,51 @@ export default function SearchModal({ isOpen, onClose, categories = [], allTags 
         <div style={s.filterRow}>
           <span style={s.filterLabel}>Filters</span>
 
-          {/* Category dropdown */}
-          <select style={s.filterSelect} value={selectedCatId} onChange={handleCategoryChange}>
-            <option value="">All Categories</option>
-            {categories.map(c => (
-              <option key={c.categoryId} value={c.categoryId}>{c.categoryName}</option>
-            ))}
-          </select>
+          {/* Category custom dropdown — matches tag menu style */}
+          <div style={{ position: "relative" }} ref={catDropRef}>
+            <button
+              style={{ ...s.tagAddBtn, ...(selectedCatId ? s.tagAddBtnActive : {}) }}
+              onClick={() => setShowCatDrop(v => !v)}
+            >
+              {selectedCatId
+                ? (categories.find(c => String(c.categoryId) === selectedCatId)?.categoryName || "Category")
+                : "All Categories"}
+              {selectedCatId && (
+                <span
+                  style={s.chipX}
+                  onClick={(e) => { e.stopPropagation(); handleCategoryChange(""); }}
+                >✕</span>
+              )}
+            </button>
+
+            {showCatDrop && (
+              <div style={s.tagMenu}>
+                <div style={s.tagMenuHeader}>
+                  <span style={s.tagMenuTitle}>Filter by category</span>
+                </div>
+                <div
+                  style={{ ...s.tagMenuItem, ...(selectedCatId === "" ? s.tagMenuItemActive : {}) }}
+                  onClick={() => handleCategoryChange("")}
+                >
+                  <span style={s.tagMenuCheck}>{selectedCatId === "" ? "✓" : " "}</span>
+                  All Categories
+                </div>
+                {categories.map(c => {
+                  const isSelected = String(c.categoryId) === selectedCatId;
+                  return (
+                    <div
+                      key={c.categoryId}
+                      style={{ ...s.tagMenuItem, ...(isSelected ? s.tagMenuItemActive : {}) }}
+                      onClick={() => handleCategoryChange(String(c.categoryId))}
+                    >
+                      <span style={s.tagMenuCheck}>{isSelected ? "✓" : " "}</span>
+                      {c.categoryName}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
           {/* Selected tag chips */}
           {selectedTagObjects.map(t => (
@@ -424,16 +465,19 @@ const s = {
     backgroundColor: "#38bdf8", color: "#0f172a",
     borderRadius: "10px", padding: "0 5px", fontSize: "0.65rem", fontWeight: "700"
   },
-  // Tag dropdown menu
+  // Tag dropdown menu — also used for category dropdown
   tagMenu: {
     position: "absolute", top: "calc(100% + 4px)", left: 0,
     backgroundColor: "#1e2227", border: "1px solid #3a3f47",
     borderRadius: "8px", minWidth: "180px", zIndex: 200,
-    boxShadow: "0 8px 24px rgba(0,0,0,0.5)", overflow: "hidden"
+    boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
+    maxHeight: "220px", overflowY: "auto",
+    display: "flex", flexDirection: "column"
   },
   tagMenuHeader: {
     display: "flex", justifyContent: "space-between", alignItems: "center",
-    padding: "8px 14px 6px", borderBottom: "1px solid #2d3135"
+    padding: "8px 14px 6px", borderBottom: "1px solid #2d3135",
+    position: "sticky", top: 0, backgroundColor: "#1e2227", zIndex: 1, flexShrink: 0
   },
   tagMenuTitle: { fontSize: "0.7rem", color: "#6b7280", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.05em" },
   tagMenuClearAll: {

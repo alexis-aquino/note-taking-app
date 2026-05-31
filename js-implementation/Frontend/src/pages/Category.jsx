@@ -12,6 +12,7 @@ export default function Category() {
   const navigate = useNavigate();
   const user = useUser();
   const [categories, setCategories] = useState([]);
+  const [uncategorizedCount, setUncategorizedCount] = useState(0);
   const [selectedCat, setSelectedCat] = useState(null);
   const [catNotes, setCatNotes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -36,7 +37,15 @@ export default function Category() {
     try {
       setLoading(true);
       const res = await api.get("/api/categories");
-      setCategories(res.data);
+      // Backend now returns { categories: [...], uncategorizedCount: N }
+      const data = res.data;
+      if (Array.isArray(data)) {
+        // fallback if backend still returns plain array
+        setCategories(data);
+      } else {
+        setCategories(data.categories || []);
+        setUncategorizedCount(data.uncategorizedCount || 0);
+      }
     } catch (err) {
       if (err.response?.status === 401) navigate("/");
       else setError("Failed to load categories.");
@@ -49,7 +58,9 @@ export default function Category() {
     setSelectedCat(cat);
     setNotesLoading(true);
     try {
-      const res = await api.get(`/api/categories/${cat.categoryId}/notes`);
+      // Use 'uncategorized' as the ID for the special bucket
+      const id = cat.categoryId === 'uncategorized' ? 'uncategorized' : cat.categoryId;
+      const res = await api.get(`/api/categories/${id}/notes`);
       setCatNotes(res.data);
     } catch {
       setError("Failed to load notes for this category.");
@@ -73,6 +84,7 @@ export default function Category() {
 
   const handleDeleteCategory = async (e, categoryId) => {
     e.stopPropagation();
+    if (categoryId === 'uncategorized') return; // can't delete the special bucket
     const cat = categories.find(c => c.categoryId === categoryId);
     setDeleteTarget({ categoryId, categoryName: cat?.categoryName || "this category" });
   };
@@ -145,7 +157,6 @@ export default function Category() {
               ? `${catNotes.length} note${catNotes.length !== 1 ? "s" : ""} in "${selectedCat.categoryName}"`
               : `${categories.length} categor${categories.length !== 1 ? "ies" : "y"}`}
           </p>
-
           {error && <p style={s.errorMsg}>{error}</p>}
 
           {/* Add category form */}
@@ -176,6 +187,27 @@ export default function Category() {
               </div>
             ) : (
               <div style={s.grid}>
+                {/* ── Uncategorized bucket — always shown first ── */}
+                {uncategorizedCount > 0 && (
+                  <div
+                    style={{ ...s.catCard, borderTop: "3px solid #4b5563", opacity: 0.9 }}
+                    onClick={() => handleSelectCategory({ categoryId: 'uncategorized', categoryName: 'Uncategorized' })}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "6px" }}>
+                      <div style={{ width: "10px", height: "10px", borderRadius: "50%", backgroundColor: "#4b5563", flexShrink: 0 }} />
+                      <h3 style={{ ...s.catName, color: "#9ca3af" }}>Uncategorized</h3>
+                    </div>
+                    <p style={s.catCount}>{uncategorizedCount} note{uncategorizedCount !== 1 ? "s" : ""}</p>
+                    <div style={s.catActions}>
+                      <button style={{ ...s.openBtn, color: "#9ca3af" }}
+                        onClick={() => handleSelectCategory({ categoryId: 'uncategorized', categoryName: 'Uncategorized' })}>
+                        Open
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* ── User-defined categories ── */}
                 {categories.map((cat, i) => {
                   const color = cat.categoryColor || null;
                   const isRenaming = renamingId === cat.categoryId;

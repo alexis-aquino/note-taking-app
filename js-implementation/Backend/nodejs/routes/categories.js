@@ -19,7 +19,17 @@ categoriesRouter.get('/', async (req, res) => {
              ORDER BY c.categoryName ASC`,
             [currentUserId]
         );
-        return res.status(200).json(rows);
+
+        // Count notes with no category assigned
+        const [[{ uncategorizedCount }]] = await dbPool.query(
+            `SELECT COUNT(*) AS uncategorizedCount FROM notes WHERE userId = ? AND categoryId IS NULL`,
+            [currentUserId]
+        );
+
+        return res.status(200).json({
+            categories: rows,
+            uncategorizedCount: Number(uncategorizedCount)
+        });
     } catch (err) {
         return res.status(500).json({ error: 'Failed to retrieve categories.' });
     }
@@ -29,6 +39,23 @@ categoriesRouter.get('/', async (req, res) => {
 categoriesRouter.get('/:categoryId/notes', async (req, res) => {
     const currentUserId = req.session.currentUserId;
     const { categoryId } = req.params;
+
+    // Special "Uncategorized" bucket — notes with no category assigned
+    if (categoryId === 'uncategorized') {
+        try {
+            const [rows] = await dbPool.query(
+                `SELECT noteId, noteTitle, noteBody, isPinned, updatedAt
+                 FROM notes
+                 WHERE userId = ? AND categoryId IS NULL
+                 ORDER BY isPinned DESC, updatedAt DESC`,
+                [currentUserId]
+            );
+            return res.status(200).json(rows);
+        } catch (err) {
+            return res.status(500).json({ error: 'Failed to retrieve uncategorized notes.' });
+        }
+    }
+
     try {
         const [rows] = await dbPool.query(
             `SELECT noteId, noteTitle, noteBody, isPinned, updatedAt

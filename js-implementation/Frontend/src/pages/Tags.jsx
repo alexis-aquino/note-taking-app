@@ -17,6 +17,7 @@ export default function Tags() {
   const [error, setError] = useState("");
   const [newTagName, setNewTagName] = useState("");
   const [showAddTag, setShowAddTag] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null); // { tagId, tagName }
 
   useEffect(() => {
     fetchTags();
@@ -73,19 +74,27 @@ export default function Tags() {
 
   const handleDeleteTag = async (e, tagId) => {
     e.stopPropagation();
-    if (!window.confirm("Delete this tag? It will be removed from all notes.")) return;
+    const tag = tags.find(t => t.tagId === tagId);
+    setDeleteTarget({ tagId, tagName: tag?.tagName || "this tag" });
+  };
+
+  const confirmDeleteTag = async () => {
+    if (!deleteTarget) return;
     try {
-      await api.delete(`/api/tags/${tagId}`);
-      if (selectedTag?.tagId === tagId) { setSelectedTag(null); setTagNotes([]); }
+      await api.delete(`/api/tags/${deleteTarget.tagId}`);
+      if (selectedTag?.tagId === deleteTarget.tagId) { setSelectedTag(null); setTagNotes([]); }
       fetchTags();
     } catch {
       setError("Failed to delete tag.");
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
   const displayedNotes = selectedTag ? tagNotes : allNotes;
 
   return (
+    <>
     <div style={s.page}>
       <Sidebar counts={{}} />
       <div style={s.workspace}>
@@ -177,7 +186,35 @@ export default function Tags() {
           </main>
         </div>
       </div>
+
+      {/* Delete Tag Confirmation Modal */}
+      {deleteTarget && (
+        <div style={s.overlay} onClick={() => setDeleteTarget(null)}>
+          <div style={s.deleteModal} onClick={e => e.stopPropagation()}>
+            <div style={s.deleteIconWrap}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none"
+                stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="3 6 5 6 21 6"/>
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                <path d="M10 11v6M14 11v6"/>
+                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+              </svg>
+            </div>
+            <h3 style={s.deleteTitle}>Delete Tag</h3>
+            <p style={s.deleteMsg}>
+              Are you sure you want to delete{" "}
+              <strong style={{ color: "#fff" }}>#{deleteTarget.tagName}</strong>?
+            </p>
+            <p style={s.deleteSubMsg}>It will be removed from all notes. This cannot be undone.</p>
+            <div style={s.deleteBtns}>
+              <button style={s.deleteCancelBtn} onClick={() => setDeleteTarget(null)}>Cancel</button>
+              <button style={s.deleteConfirmBtn} onClick={confirmDeleteTag}>Delete Tag</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+    </>
   );
 }
 
@@ -206,5 +243,16 @@ const s = {
   card: { backgroundColor: "#1e2124", padding: "20px", borderRadius: "12px", border: "1px solid #2d3135", display: "flex", flexDirection: "column", gap: "10px", minHeight: "150px", justifyContent: "space-between", cursor: "pointer" },
   cardTitle: { fontSize: "1rem", fontWeight: "600", color: "#fff", margin: 0 },
   cardPreview: { fontSize: "0.85rem", color: "#9ca3af", margin: 0, lineHeight: "1.5", display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" },
-  cardFooter: { display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.78rem", color: "#6b7280" }
+  cardFooter: { display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.78rem", color: "#6b7280" },
+
+  // Delete confirmation modal
+  overlay: { position: "fixed", inset: 0, backgroundColor: "rgba(0,0,0,0.65)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1000 },
+  deleteModal: { backgroundColor: "#1e2227", border: "1px solid #3a3f47", borderRadius: "16px", padding: "36px 32px 28px", width: "min(420px, 90vw)", display: "flex", flexDirection: "column", alignItems: "center", gap: "12px", boxShadow: "0 24px 48px rgba(0,0,0,0.7)" },
+  deleteIconWrap: { width: "60px", height: "60px", borderRadius: "50%", backgroundColor: "rgba(248,113,113,0.1)", border: "1px solid rgba(248,113,113,0.2)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "4px" },
+  deleteTitle: { color: "#fff", fontSize: "1.15rem", fontWeight: "700", margin: 0, textAlign: "center" },
+  deleteMsg: { color: "#9ca3af", fontSize: "0.9rem", textAlign: "center", lineHeight: "1.6", margin: 0 },
+  deleteSubMsg: { color: "#6b7280", fontSize: "0.78rem", textAlign: "center", margin: 0 },
+  deleteBtns: { display: "flex", gap: "10px", marginTop: "8px", width: "100%" },
+  deleteCancelBtn: { flex: 1, padding: "10px", backgroundColor: "#2d3135", border: "1px solid #3a3f47", borderRadius: "8px", color: "#d1d5db", fontWeight: "600", fontSize: "0.88rem", cursor: "pointer" },
+  deleteConfirmBtn: { flex: 1, padding: "10px", backgroundColor: "#dc2626", border: "none", borderRadius: "8px", color: "#fff", fontWeight: "700", fontSize: "0.88rem", cursor: "pointer" },
 };

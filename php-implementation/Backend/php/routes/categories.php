@@ -42,12 +42,37 @@ if ($method === 'GET' && $catId === null) {
          ORDER BY c.categoryName ASC'
     );
     $stmt->execute([$userId]);
-    echo json_encode(array_values($stmt->fetchAll()));
+    $categories = $stmt->fetchAll();
+
+    // Count notes with no category (Uncategorized bucket)
+    $countStmt = $db->prepare(
+        'SELECT COUNT(*) AS uncategorizedCount FROM notes WHERE userId = ? AND categoryId IS NULL'
+    );
+    $countStmt->execute([$userId]);
+    $uncategorizedCount = (int) $countStmt->fetch()['uncategorizedCount'];
+
+    echo json_encode([
+        'categories'         => array_values($categories),
+        'uncategorizedCount' => $uncategorizedCount,
+    ]);
     exit;
 }
 
 // ── GET /api/categories/{id}/notes ───────────────────────────────────────────
 if ($method === 'GET' && $catId !== null && $subSegment === 'notes') {
+    // Special "uncategorized" bucket
+    if ($catSegment === 'uncategorized') {
+        $stmt = $db->prepare(
+            'SELECT noteId, noteTitle, noteBody, isPinned, updatedAt
+             FROM notes
+             WHERE userId = ? AND categoryId IS NULL
+             ORDER BY isPinned DESC, updatedAt DESC'
+        );
+        $stmt->execute([$userId]);
+        echo json_encode(array_values($stmt->fetchAll()));
+        exit;
+    }
+
     $stmt = $db->prepare(
         'SELECT noteId, noteTitle, noteBody, isPinned, updatedAt
          FROM notes

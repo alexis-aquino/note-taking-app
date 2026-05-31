@@ -69,7 +69,9 @@ export default function Home() {
   const fetchCategories = async () => {
     try {
       const res = await api.get("/api/categories");
-      setCategories(res.data);
+      // Backend returns { categories: [...], uncategorizedCount: N }
+      const data = res.data;
+      setCategories(Array.isArray(data) ? data : (data.categories || []));
     } catch {
       // non-critical
     }
